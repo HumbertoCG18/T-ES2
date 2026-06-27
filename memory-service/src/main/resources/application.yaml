@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: memory-service
+
+  # Longo prazo (fonte da verdade). Container de infra: infra/docker-compose.infra.yaml.
+  # Sobrescrever via env em Docker/K8s: POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD.
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/memory}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update          # Flyway = evolucao futura; aqui o schema sobe sozinho
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # Curto prazo (cache de sessao ativa). Sobrescrever via REDIS_HOST/REDIS_PORT.
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: 8082
+
+# Parametros da memoria (externalizados; ver R3 do plano da Entrega 3).
+#   history-limit     -> N de mensagens mantidas no Redis (LTRIM) e lidas como contexto
+#   redis-ttl-seconds -> TTL da sessao quente no Redis
+memory:
+  history-limit: ${MEMORY_HISTORY_LIMIT:20}
+  redis-ttl-seconds: ${MEMORY_REDIS_TTL:3600}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.tes2.memory: INFO

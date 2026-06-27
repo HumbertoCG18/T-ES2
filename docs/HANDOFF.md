@@ -6,10 +6,11 @@ Documento de transferência: leia isto + [`plan/README.md`](plan/README.md) ao r
 
 ## TL;DR — onde estamos
 
-Entregas **1 e 2 concluídas e verificadas ao vivo**. **Frontend bônus** (app shell completo
-estilo claude.ai) funcionando ponta-a-ponta com LLM real + tool calling. **Entrega 3 (Memória e
-RAG) está PLANEJADA** (plano pronto, ainda não implementada). **Próximo passo: executar a
-Entrega 3** seguindo [`plan/03-memoria-rag.md`](plan/03-memoria-rag.md).
+Entregas **1, 2 e 3 concluídas e verificadas ao vivo**. **Frontend bônus** (app shell completo
+estilo claude.ai) funcionando ponta-a-ponta com LLM real + tool calling + `conversationId`.
+**Entrega 3 (Memória e RAG) IMPLEMENTADA** (memory-service + retrieval-service + integração no
+agent-service), verificada ponta-a-ponta — porém **ainda não commitada** (tudo no working tree do
+branch `dev-HCG`). **Próximo passo: commitar a Entrega 3 e iniciar a Entrega 4 (RabbitMQ)**.
 
 ## Pronto (commits no `dev-HCG`)
 
@@ -32,9 +33,9 @@ Working tree limpo. Sem push remoto (branch local).
 | `agent-service` (ciclo agêntico) | 8081 | ✅ pronto |
 | `llm-gateway` (LiteLLM/Ollama) | 4000 | ✅ pronto |
 | `frontend` (Vite/React) | 5173 | ✅ bônus |
-| `memory-service` | 8082 | ⬜ Entrega 3 |
-| `retrieval-service` | 8083 | ⬜ Entrega 3 |
-| Redis / PostgreSQL / ChromaDB | 6379 / 5432 / 8000 | ⬜ Entrega 3 (containers) |
+| `memory-service` | 8082 | ✅ Entrega 3 (Redis curto + Postgres longo) |
+| `retrieval-service` | 8083 | ✅ Entrega 3 (FastAPI + ChromaDB + Eureka) |
+| Redis / PostgreSQL / ChromaDB | 6379 / 5432 / 8000 | ✅ Entrega 3 (`infra/docker-compose.infra.yaml`) |
 | Ollama | 11434 | infra local |
 
 > Processos de dev de sessões anteriores podem ainda estar rodando nessas portas — matar se
@@ -53,18 +54,26 @@ Ordem mínima (ver [`runbook.md`](runbook.md) para detalhes e a demo de fallback
 Frontend: `cd frontend && npm install && npm run dev` → http://localhost:5173.
 Smoke: `curl http://localhost:8080/chat -H "Content-Type: application/json" -d '{"message":"Quanto e 2+2?"}'`.
 
-## Próximo passo — Entrega 3 (Memória e RAG)
+## Entrega 3 (Memória e RAG) — CONCLUÍDA (working tree, não commitada)
 
-Plano completo: [`plan/03-memoria-rag.md`](plan/03-memoria-rag.md). Resumo:
-- **`memory-service`** (Spring, 8082): Redis (curto prazo) + PostgreSQL (longo prazo), por `conversationId`.
-- **`retrieval-service`** (FastAPI + ChromaDB, 8083): ingestão + busca semântica; embeddings via `llm-gateway`.
-- **`agent-service`**: `/chat` ganha `conversationId`; carrega histórico, injeta contexto RAG (vira passo no `trace`), persiste a troca.
-- **Infra** via `infra/docker-compose.infra.yaml` (Redis/Postgres/ChromaDB em containers).
-- **`tool-registry` adiado**; back-compat mantido (`/chat` sem `conversationId` funciona).
+Plano e critérios: [`plan/03-memoria-rag.md`](plan/03-memoria-rag.md). Entregue e verificado ao vivo:
+- **`memory-service`** (Spring, 8082): Redis (curto) + PostgreSQL (longo), write-through, leitura
+  Redis-first→Postgres com reheat. Endpoints `/conversations/{id}/messages|history`.
+- **`retrieval-service`** (FastAPI + ChromaDB, 8083): `/ingest` + `/search`; embeddings via
+  `llm-gateway` (`embeddinggemma:300m`, 768d); registra no Eureka (`py-eureka-client`).
+- **`agent-service`**: `/chat` com `conversationId` (gera se ausente); carrega histórico, injeta
+  contexto RAG (`rag: N trechos` no `trace`), persiste o turno. Clients `lb://` + circuit breakers
+  (memory 3s / retrieval 5s) com fallback. Prompt ajustado (calculator só p/ aritmética + grounding).
+- **Frontend**: `sendChat` passa o `conversationId` da conversa ativa.
+- **Infra**: `infra/docker-compose.infra.yaml` (Redis/Postgres/ChromaDB; Chroma sem healthcheck).
+- **Verificado:** memória 2 níveis, RAG ancorado 3/3, discovery `lb://` (4 serviços UP), resiliência
+  (memory/retrieval fora → sem 5xx), back-compat. `mvn package` verde nos 2 módulos Spring.
+- **ADRs:** 0007 (memória 2 níveis), 0008 (retrieval Python + discovery/fallback), 0009 (injeção RAG).
 
-**Começar pela Tarefa 1 do plano** (Context7): confirmar starters `data-redis`/`data-jpa` + driver
-Postgres no BOM Boot 3.5.9; API do `chromadb.HttpClient`; contrato `/v1/embeddings` do LiteLLM
-(`{model,input}` → `data[].embedding`); viabilidade do `py-eureka-client` no Windows.
+**Próximo passo:** (1) **commitar a Entrega 3**; (2) iniciar **Entrega 4 — Mensageria (RabbitMQ)**:
+tornar a ingestão de documentos assíncrona e/ou publicar telemetria do `agent-service`.
+`tool-registry` remoto segue adiado (Entrega 3+). Gotcha recorrente: matar instâncias antigas nas
+portas 8081/8082/8083 antes de subir (sessões anteriores deixam processos vivos).
 
 ## Método de trabalho (SADD — Sub-Agent Driven Development)
 

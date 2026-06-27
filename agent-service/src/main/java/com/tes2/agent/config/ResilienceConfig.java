@@ -40,4 +40,39 @@ public class ResilienceConfig {
                         .timeLimiterConfig(timeLimiter),
                 "llmGateway");
     }
+
+    /**
+     * Breakers de memory-service e retrieval-service. Diferente do llmGateway, são serviços
+     * rápidos: time limiter CURTO. Em fallback, o /chat segue sem histórico / sem RAG (o
+     * ciclo nunca quebra por causa de memória/RAG).
+     * - memoryService: 3s (Redis/Postgres locais).
+     * - retrievalService: 5s (encadeia um embedding no llm-gateway antes da busca).
+     */
+    @Bean
+    public Customizer<Resilience4JCircuitBreakerFactory> memoryRetrievalCustomizer() {
+        CircuitBreakerConfig circuitBreaker = CircuitBreakerConfig.custom()
+                .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
+                .slidingWindowSize(10)
+                .minimumNumberOfCalls(3)
+                .failureRateThreshold(50)
+                .waitDurationInOpenState(Duration.ofSeconds(10))
+                .permittedNumberOfCallsInHalfOpenState(3)
+                .build();
+
+        TimeLimiterConfig memoryTl = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(3))
+                .build();
+        TimeLimiterConfig retrievalTl = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(5))
+                .build();
+
+        return factory -> {
+            factory.configure(builder -> builder
+                    .circuitBreakerConfig(circuitBreaker)
+                    .timeLimiterConfig(memoryTl), "memoryService");
+            factory.configure(builder -> builder
+                    .circuitBreakerConfig(circuitBreaker)
+                    .timeLimiterConfig(retrievalTl), "retrievalService");
+        };
+    }
 }

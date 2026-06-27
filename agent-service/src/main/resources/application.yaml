@@ -12,6 +12,16 @@ llm:
   model: ${LLM_MODEL:chat}
   max-iterations: ${LLM_MAX_ITERATIONS:5}
 
+# memory-service: discovery por padrao (lb://). MEMORY_URL pode apontar p/ http://host:porta.
+memory:
+  base-url: ${MEMORY_URL:lb://memory-service}
+  history-limit: ${MEMORY_HISTORY_LIMIT:20}
+
+# retrieval-service (RAG): lb:// por padrao; RETRIEVAL_URL=http://host:porta = fallback URL fixa.
+retrieval:
+  base-url: ${RETRIEVAL_URL:lb://retrieval-service}
+  top-k: ${RETRIEVAL_TOP_K:4}
+
 eureka:
   client:
     service-url:

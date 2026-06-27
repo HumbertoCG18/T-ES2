@@ -17,3 +17,6 @@ criar um novo ADR que substitua o anterior.
 | [0004](0004-frontend-shadcn-bonus.md) | Frontend shadcn como bônus de demo | Aceito |
 | [0005](0005-circuit-breaker-agent-service.md) | Circuit breaker no agent-service via Spring Cloud CircuitBreaker | Aceito |
 | [0006](0006-frontend-stack.md) | Stack do frontend: Vite + React + Tailwind + shadcn (localStorage) | Aceito |
+| [0007](0007-memoria-redis-postgres.md) | Memória em dois níveis: Redis (curto) + PostgreSQL (longo), write-through | Aceito |
+| [0008](0008-retrieval-python-discovery.md) | retrieval-service em Python + discovery via py-eureka-client (fallback URL fixa) | Aceito |
+| [0009](0009-injecao-contexto-rag.md) | Injeção de contexto RAG como system message + degradação graciosa | Aceito |

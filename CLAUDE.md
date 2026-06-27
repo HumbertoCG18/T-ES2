@@ -4,13 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado do repositório
 
-**Entregas 1–2 concluídas (verificadas ao vivo).** Serviços: `agent-service/` (Spring Boot,
-ciclo agêntico + Eureka client + circuit breaker), `llm-gateway/` (LiteLLM/Ollama),
-`name-server/` (Eureka Server, 8761), `api-gateway/` (Spring Cloud Gateway, 8080). Bônus:
-`frontend/` (Vite + React + Tailwind + shadcn) — app shell estilo claude.ai, chat funcionando
-ponta-a-ponta com LLM real; em expansão (ver `docs/plan/B-frontend.md`). Faltam `memory-service`,
-`retrieval-service`, `tool-registry` (Entrega 3+). **Sempre conferir `docs/plan/README.md`** para
-o estado atual e o que falta. Arquitetura-alvo na spec (`docs/t1_2026_1.pdf`).
+**Entregas 1–3 concluídas (verificadas ao vivo).** Serviços: `agent-service/` (Spring Boot,
+ciclo agêntico + Eureka client + circuit breaker + memória/RAG no `/chat`), `llm-gateway/`
+(LiteLLM/Ollama, com modelo lógico `embeddings`), `name-server/` (Eureka Server, 8761),
+`api-gateway/` (Spring Cloud Gateway, 8080), `memory-service/` (Spring Boot, Redis curto +
+PostgreSQL longo, 8082), `retrieval-service/` (FastAPI + ChromaDB, embeddings via gateway, 8083).
+Infra de apoio em containers: `infra/docker-compose.infra.yaml` (Redis/Postgres/ChromaDB). Bônus:
+`frontend/` (Vite + React + Tailwind + shadcn) — app shell estilo claude.ai, chat ponta-a-ponta
+com LLM real e `conversationId`; em expansão (ver `docs/plan/B-frontend.md`). Falta `tool-registry`
+(adiado, Entrega 3+; `ToolRegistry` in-process atende por ora) e Entregas 4–8. **Sempre conferir
+`docs/plan/README.md`** para o estado atual e o que falta. Arquitetura-alvo na spec
+(`docs/t1_2026_1.pdf`). ADRs novos: 0007 (memória 2 níveis), 0008 (retrieval Python + discovery),
+0009 (injeção RAG).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +
@@ -94,6 +99,20 @@ projeto isolado, com seu próprio build, Dockerfile e ciclo de deploy:
   - Teste único: `./mvnw test -Dtest=CalculatorToolTest#avaliaSomaSimples`
   - Build jar: `./mvnw package` → `target/agent-service-0.1.0.jar`
   - Config externalizada por env: `LLM_BASE_URL`, `LLM_MODEL`, `LLM_MAX_ITERATIONS`.
+- **memory-service** (porta 8082), de dentro de `memory-service/` — Entrega 3 (scaffold pronto):
+  - Run: `.\mvnw.cmd spring-boot:run` (precisa de Redis+Postgres de `infra/`).
+  - Build/compila: `.\mvnw.cmd -DskipTests compile` (não precisa de infra/DB).
+  - Config por env: `POSTGRES_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `REDIS_HOST`,
+    `REDIS_PORT`, `EUREKA_URL`, `MEMORY_HISTORY_LIMIT`, `MEMORY_REDIS_TTL`.
+- **retrieval-service** (porta 8083), de dentro de `retrieval-service/` — Entrega 3 (RAG, pronto):
+  - Deps: `uv sync`. Run: `uv run uvicorn app.main:app --port 8083` (`--reload` em dev).
+  - Precisa de ChromaDB (8000) + llm-gateway (4000, embeddings) + Ollama (`embeddinggemma:300m`).
+  - Endpoints: `POST /ingest`, `POST /search`, `DELETE /documents/{docId}`, `GET /health`.
+  - Registra-se no Eureka como `RETRIEVAL-SERVICE` (`py-eureka-client`); `EUREKA_ENABLED=false`
+    desliga e usa-se URL fixa no agent-service (`RETRIEVAL_URL`). Embeddings: `embeddinggemma:300m` (768d).
+- **Infra da Entrega 3** (Redis 6379 / Postgres 5432 db `memory` / ChromaDB 8000):
+  - `docker compose -f infra/docker-compose.infra.yaml up -d` (down `-v` apaga dados).
+  - ChromaDB sem healthcheck (imagem mínima); readiness: `curl http://localhost:8000/api/v2/heartbeat`.
 - **llm-gateway** (porta 4000), de dentro de `llm-gateway/`:
   - `OLLAMA_BASE_URL` no ambiente, depois `uv run litellm --config config.yaml --port 4000`
   - PowerShell: `$env:OLLAMA_BASE_URL="http://localhost:11434"`

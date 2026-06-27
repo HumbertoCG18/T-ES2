@@ -1,0 +1,68 @@
+# Infraestrutura de apoio da Entrega 3 (Memória e RAG) — SÓ containers de infra.
+# NÃO contém os serviços próprios (memory-service/retrieval-service rodam como
+# processos locais nesta entrega; Dockerfiles + compose completo = Entrega 5).
+#
+# Sobe Redis (curto prazo), PostgreSQL (longo prazo) e ChromaDB (vetores/RAG).
+# Tudo 100% local, sem nuvem.
+#
+# Uso:
+#   docker compose -f infra/docker-compose.infra.yaml up -d
+#   docker compose -f infra/docker-compose.infra.yaml down        # mantém volumes
+#   docker compose -f infra/docker-compose.infra.yaml down -v      # apaga dados
+#
+# Portas: redis 6379 · postgres 5432 · chromadb 8000.
+# (Compose v2 ignora a chave 'version:', por isso ela é omitida.)
+
+name: tes2-infra
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis            # nome fixo p/ 'docker exec -it redis redis-cli ...'
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres         # nome fixo p/ 'docker exec -it postgres psql ...'
+    environment:
+      POSTGRES_DB: memory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d memory"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:1.5.3
+    container_name: chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/data            # persist_path padrão da imagem
+    # Sem healthcheck: a imagem chromadb/chroma:1.5.3 é mínima (sh=dash, sem
+    # curl/wget/nc/python e sem /dev/tcp), então não há cliente HTTP in-container.
+    # Readiness é verificada do host: curl http://localhost:8000/api/v2/heartbeat
+    # (a v1 responde 410 Gone na Chroma 1.x; usar SEMPRE /api/v2).
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  postgres-data:
+  chroma-data:

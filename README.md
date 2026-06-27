@@ -67,8 +67,9 @@ cd agent-service
 
 1. ✅ **Fundação** — agent-service + llm-gateway via REST.
 2. ✅ **Infraestrutura** — Eureka (name-server) + API Gateway + circuit breaker (verificada ao vivo).
-3. ⬜ Memória e RAG — memory-service (Redis curto prazo + PostgreSQL longo prazo) +
-   retrieval-service (ChromaDB) com ingestão de documentos.
+3. ✅ **Memória e RAG** — memory-service (Redis curto prazo + PostgreSQL longo prazo) +
+   retrieval-service (FastAPI + ChromaDB) com ingestão/busca semântica. Integrado ao `/chat`
+   (`conversationId`, histórico + contexto RAG no `trace`), verificado ponta-a-ponta ao vivo.
 4. ⬜ Mensageria — RabbitMQ (≥1 fluxo assíncrono: telemetria / ingestão / notificação).
 5. ⬜ Containerização — Dockerfiles + `docker-compose.yaml`.
 6. ⬜ Observabilidade — OpenTelemetry + Jaeger (+ Prometheus); pipeline de CI.

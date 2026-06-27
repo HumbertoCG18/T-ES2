@@ -89,6 +89,14 @@ Adicionar **memória de conversação** e **RAG** à plataforma, criando dois mi
 | 12 | **Docs + ADRs:** `architecture.md`, `plan/README.md`, `runbook.md`; ADR 0007 (split Redis/Postgres), 0008 (retrieval Python + discovery/fallback), 0009 (injeção RAG); `adr/README.md`. | `cavecrew-builder` | `docs/...` | 2–10 |
 | 13 | **Integração e verificação (thread principal):** subir infra, `mvn package`, subir os 7 processos, ingerir doc, validar memória + RAG, checar Postgres/Redis e Eureka. | thread principal | — | 2–11 |
 
+## Tarefa 1 — resultados da validação (✅ 2026-06-27, via Context7 + repo)
+
+- **Starters Boot 3.5.9 (BOM):** `spring-boot-starter-data-redis`, `spring-boot-starter-data-jpa` e `org.postgresql:postgresql` são gerenciados pelo dependency management do Boot — **sem versão explícita** no `pom.xml`. OK.
+- **ChromaDB:** imagem **`chromadb/chroma:1.5.3`** (porta 8000, volume `/data`, opcional `CONFIG_PATH`). Cliente: `chromadb.HttpClient(host, port=8000, ssl=False)`; `client.get_or_create_collection(name="knowledge", embedding_function=None)` (embeddings pré-computados); `collection.upsert(ids, documents, embeddings, metadatas)`; `collection.query(query_embeddings, n_results, where, include=["documents","distances"])`. **Dimensão fixada no 1º embedding e imutável** → uma coleção, um modelo (R2 confirmado).
+- **LiteLLM `/v1/embeddings`:** contrato OpenAI-compatível confirmado. Req `{ "model": "embeddings", "input": "<str ou [str]>" }`; resp `{ "object":"list", "data":[ { "object":"embedding", "embedding":[...], "index":0 } ], "model", "usage" }` → ler `data[].embedding`. O `llm-gateway/config.yaml` **já tem** `model_name: embeddings` → `ollama/embeddinggemma:300m` (prefixo `ollama/`, correto p/ embeddings).
+- **Ollama:** `embeddinggemma:300m` (621 MB) e `llama3.1:latest` já puxados. `embeddinggemma:300m` = **768 dims** (full; MRL trunca p/ 512/256/128 — usar full 768). Confirma R2/R8.
+- **`py-eureka-client`:** Context7 **não tem** entry (só Netflix Eureka). API conhecida (`eureka_client.init(...)` no lifespan, `stop()` no shutdown). Mantém **fallback URL fixa** (`RETRIEVAL_URL`) já planejado — R1/ADR 0008.
+
 ## Endpoints dos serviços novos (contratos)
 
 ### `memory-service` (porta 8082, `lb://memory-service`)

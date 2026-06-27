@@ -421,13 +421,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /**
    * Dispara a chamada ao agente e resolve o placeholder "pensando".
    *
-   * TODO: a API atual (POST /api/chat) não recebe o modelo selecionado
-   * (cosmético) nem os anexos/instruções/memória do projeto. Quando o
-   * backend suportar, enviar esses dados junto da mensagem.
+   * O `conversationId` da conversa ativa é enviado para ativar memória/RAG por
+   * conversa (Entrega 3). TODO: a API ainda não recebe o modelo selecionado
+   * (cosmético) nem os anexos/instruções/memória do projeto; quando o backend
+   * suportar, enviar esses dados junto da mensagem.
    */
   const runAgent = useCallback(
     (conversationId: string, apiText: string, pendingId: string) => {
-      sendChat(apiText)
+      sendChat(apiText, conversationId)
         .then(({ reply, trace }) => {
           dispatch({
             type: "RESOLVE_MESSAGE",

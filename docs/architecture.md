@@ -24,9 +24,9 @@ frontend, `curl` ou Postman.
 |---|---------|------------------|-------|--------|
 | 1 | `agent-service` | Orquestra o ciclo agêntico (LLM + ferramentas) | Spring Boot | ✅ Entrega 1 |
 | 2 | `llm-gateway` | Proxy unificado p/ LLMs locais | LiteLLM + Ollama | ✅ Entrega 1 |
-| 3 | `memory-service` | Histórico: curto prazo (Redis) + longo prazo (PostgreSQL) | Spring Boot | ⬜ Entrega 3 |
-| 4 | `retrieval-service` | Busca semântica / RAG + ingestão de docs | FastAPI + ChromaDB | ⬜ Entrega 3 |
-| 5 | `tool-registry` | Registra/expõe ferramentas invocáveis | Spring Boot | ⬜ Entrega 3+ |
+| 3 | `memory-service` | Histórico: curto prazo (Redis) + longo prazo (PostgreSQL) | Spring Boot | ✅ Entrega 3 |
+| 4 | `retrieval-service` | Busca semântica / RAG + ingestão de docs | FastAPI + ChromaDB | ✅ Entrega 3 |
+| 5 | `tool-registry` | Registra/expõe ferramentas invocáveis | Spring Boot | ⬜ Entrega 3+ (adiado; `ToolRegistry` in-process por ora) |
 | 6 | `api-gateway` | Entrada única: roteamento (circuit breaker no agent-service) | Spring Cloud Gateway | ✅ Entrega 2 |
 | 7 | `name-server` | Service discovery | Eureka Server | ✅ Entrega 2 |
 
@@ -39,35 +39,51 @@ frontend, `curl` ou Postman.
 - **Assíncrono (RabbitMQ):** desacopla produtor/consumidor. Usos previstos: telemetria do
   `agent-service` (latência, ferramentas, chamadas ao LLM); ingestão de documentos para o
   `retrieval-service`; notificações entre agentes.
-- **Resiliência (Resilience4j):** circuit breaker no caminho `agent-service` → `llm-gateway`;
-  fallback quando o LLM está indisponível.
+- **Memória + RAG (síncrono, Entrega 3):** o `agent-service` resolve `lb://memory-service` e
+  `lb://retrieval-service` via Eureka. No `/chat`: carrega o histórico (memory), busca trechos
+  (retrieval, que embeda via `llm-gateway` e consulta o ChromaDB), injeta o contexto como `system`
+  e, ao final, persiste o turno. Ingestão de documentos é síncrona nesta entrega (vira fila na 4).
+- **Resiliência (Resilience4j):** circuit breaker no caminho `agent-service` → `llm-gateway`
+  (fallback quando o LLM está indisponível) e breakers próprios para `memory-service`/
+  `retrieval-service` (time limiter curto; fallback = sem histórico / sem RAG; o `/chat` não quebra).
 - **Observabilidade:** OpenTelemetry + Jaeger (tracing) e/ou Prometheus + Grafana (métricas).
 
 ## Diagrama (lógico, ASCII — substituir por versão visual no relatório)
 
 ```
-              Cliente (HTTP / curl / frontend)
+            Cliente (HTTP / curl / frontend)
                         |
                         v
-                 [ api-gateway ]  <--- registra ---> [ name-server (Eureka) ]
-                        |
+                 [ api-gateway ] <--- registra/descobre ---> [ name-server (Eureka) ]
+                        |                                       ^ (todos os serviços registram)
                         v
-                 [ agent-service ] ---- ciclo agêntico ----+
-                    |     |      |                          |
-        +-----------+     |      +-----------+              | (async)
-        v                 v                  v              v
-  [ llm-gateway ]  [ memory-service ]  [ tool-registry ]  [ RabbitMQ ]
-        |             Redis + Postgres                       |
-        v                                                    v
-   [ Ollama ]                                       [ retrieval-service ]
-   (LLM local)                                       ChromaDB / Qdrant
-                        \                 /
-                         v               v
-                  OpenTelemetry + Jaeger + Prometheus
+                 [ agent-service ] ----------- ciclo agêntico -----------+
+                    |        |              |                            |
+        +-----------+        v              v                            v
+        v             [ memory-service ]  [ tool-registry ]     [ retrieval-service ]
+  [ llm-gateway ]      Redis (curto) +     (in-process,           |          |
+        |              Postgres (longo)     Entrega 3+)     ChromaDB   embeddings
+        v                                                  (vetores)       |
+   [ Ollama ]  <----------------------------------------------------------+
+   (LLM local: chat + embeddinggemma)
+
+  Resiliência: circuit breaker agent→llm-gateway, agent→memory, agent→retrieval (Resilience4j).
+  Futuro: RabbitMQ (async, Entrega 4) · OpenTelemetry + Jaeger + Prometheus (Entrega 6).
 ```
 
-## Estado atual (Entrega 1 — Fundação)
+## Estado atual (Entregas 1–3)
 
-`agent-service` (Spring Boot) recebe `POST /chat`, executa o ciclo agêntico com ≥1 chamada ao
-LLM e ≥1 ferramenta (calculadora), conversando via REST com `llm-gateway` (LiteLLM → Ollama
-`llama3.1`). Sem containers ainda; cada serviço roda como processo local.
+- **Entrega 1 — Fundação:** `agent-service` recebe `POST /chat`, executa o ciclo agêntico com ≥1
+  chamada ao LLM e ≥1 ferramenta (calculadora), via REST com `llm-gateway` (LiteLLM → Ollama
+  `llama3.1`).
+- **Entrega 2 — Infraestrutura:** `name-server` (Eureka) + `api-gateway` (Spring Cloud Gateway);
+  serviços registrados e roteados por nome lógico; circuit breaker com fallback no `agent-service`.
+- **Entrega 3 — Memória e RAG:** `memory-service` (Redis curto prazo + PostgreSQL longo prazo) e
+  `retrieval-service` (FastAPI + ChromaDB, embeddings via `llm-gateway`). O `/chat` ganhou
+  `conversationId`: carrega histórico, injeta contexto RAG (linha `rag: N trechos` no `trace`) e
+  persiste o turno. Verificado ponta-a-ponta: memória nos dois níveis, RAG ancorado, discovery
+  `lb://`, resiliência (memory/retrieval fora → sem 5xx) e back-compat (`/chat` sem `conversationId`).
+  Decisões em ADR 0007/0008/0009. `tool-registry` remoto adiado (Entrega 3+).
+
+Ainda sem containers de serviço (só infra em containers): cada serviço roda como processo local;
+Dockerfiles + `docker-compose.yaml` completo chegam na Entrega 5.
