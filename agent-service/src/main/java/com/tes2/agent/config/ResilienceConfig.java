@@ -66,6 +66,10 @@ public class ResilienceConfig {
                 .timeoutDuration(Duration.ofSeconds(5))
                 .build();
 
+        TimeLimiterConfig toolTl = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(3))
+                .build();
+
         return factory -> {
             factory.configure(builder -> builder
                     .circuitBreakerConfig(circuitBreaker)
@@ -73,6 +77,10 @@ public class ResilienceConfig {
             factory.configure(builder -> builder
                     .circuitBreakerConfig(circuitBreaker)
                     .timeLimiterConfig(retrievalTl), "retrievalService");
+            // tool-registry: serviço rápido; fallback = sem ferramentas / observação de indisponibilidade.
+            factory.configure(builder -> builder
+                    .circuitBreakerConfig(circuitBreaker)
+                    .timeLimiterConfig(toolTl), "toolRegistry");
         };
     }
 }

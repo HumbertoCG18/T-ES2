@@ -1,17 +1,12 @@
-package com.tes2.agent.tools;
-
-import com.tes2.agent.llm.dto.ToolSpec;
-import org.springframework.stereotype.Component;
+package com.tes2.toolregistry.tools;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
-/**
- * Registro local de ferramentas. Coleta todos os beans {@link Tool} e os expoe ao agente.
- * (Na Entrega 5 evolui para consultar o microsservico tool-registry remoto.)
- */
+/** Coleta todos os beans {@link Tool} e os expoe (specs + execucao). */
 @Component
 public class ToolRegistry {
 
@@ -23,6 +18,10 @@ public class ToolRegistry {
 
     public List<ToolSpec> specs() {
         return tools.values().stream().map(Tool::spec).toList();
+    }
+
+    public boolean has(String name) {
+        return tools.containsKey(name);
     }
 
     public String execute(String name, String argumentsJson) {

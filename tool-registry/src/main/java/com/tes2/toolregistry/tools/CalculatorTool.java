@@ -1,14 +1,12 @@
-package com.tes2.agent.tools;
+package com.tes2.toolregistry.tools;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tes2.agent.llm.dto.ToolSpec;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
-/** Ferramenta de exemplo: avalia expressoes aritmeticas. Atende o requisito "ao menos uma ferramenta". */
+/** Avalia expressoes aritmeticas. */
 @Component
 public class CalculatorTool implements Tool {
 

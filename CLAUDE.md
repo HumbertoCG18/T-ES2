@@ -9,14 +9,15 @@ ciclo agêntico + Eureka client + circuit breaker + memória/RAG no `/chat` + pr
 `llm-gateway/`
 (LiteLLM/Ollama, com modelo lógico `embeddings`), `name-server/` (Eureka Server, 8761),
 `api-gateway/` (Spring Cloud Gateway, 8080), `memory-service/` (Spring Boot, Redis curto +
-PostgreSQL longo, 8082), `retrieval-service/` (FastAPI + ChromaDB, embeddings via gateway, 8083).
+PostgreSQL longo, 8082), `retrieval-service/` (FastAPI + ChromaDB, embeddings via gateway, 8083),
+`tool-registry/` (Spring Boot, ferramentas remotas calculator/datetime/db_query, 8084).
 Infra de apoio em containers: `infra/docker-compose.infra.yaml` (Redis/Postgres/ChromaDB). Bônus:
 `frontend/` (Vite + React + Tailwind + shadcn) — app shell estilo claude.ai, chat ponta-a-ponta
-com LLM real e `conversationId`; em expansão (ver `docs/plan/B-frontend.md`). Falta `tool-registry`
-(adiado, Entrega 3+; `ToolRegistry` in-process atende por ora) e Entregas 4–8. **Sempre conferir
+com LLM real e `conversationId`; em expansão (ver `docs/plan/B-frontend.md`). O `tool-registry`
+remoto foi entregue (microsserviço nº 5; ADR 0011). Faltam Entregas 5–8. **Sempre conferir
 `docs/plan/README.md`** para o estado atual e o que falta. Arquitetura-alvo na spec
 (`docs/t1_2026_1.pdf`). ADRs novos: 0007 (memória 2 níveis), 0008 (retrieval Python + discovery),
-0009 (injeção RAG), 0010 (mensageria RabbitMQ: ingestão async + telemetria).
+0009 (injeção RAG), 0010 (mensageria RabbitMQ: ingestão async + telemetria), 0011 (tool-registry remoto).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +
@@ -105,6 +106,11 @@ projeto isolado, com seu próprio build, Dockerfile e ciclo de deploy:
   - Build/compila: `.\mvnw.cmd -DskipTests compile` (não precisa de infra/DB).
   - Config por env: `POSTGRES_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `REDIS_HOST`,
     `REDIS_PORT`, `EUREKA_URL`, `MEMORY_HISTORY_LIMIT`, `MEMORY_REDIS_TTL`.
+- **tool-registry** (porta 8084), de dentro de `tool-registry/` — microsserviço nº 5 (pronto):
+  - Run: `.\mvnw.cmd spring-boot:run` (precisa do Postgres p/ a ferramenta `db_query`).
+  - Endpoints: `GET /tools` (specs), `POST /tools/{name}/execute` (`{arguments}` → `{result}`).
+  - Ferramentas: `calculator`, `datetime`, `db_query` (SELECT read-only). Config por env: `POSTGRES_URL`,
+    `EUREKA_URL`. O `agent-service` resolve por `lb://tool-registry` (env `TOOLS_URL` p/ URL fixa).
 - **retrieval-service** (porta 8083), de dentro de `retrieval-service/` — Entrega 3 (RAG, pronto):
   - Deps: `uv sync`. Run: `uv run uvicorn app.main:app --port 8083` (`--reload` em dev).
   - Precisa de ChromaDB (8000) + llm-gateway (4000, embeddings) + Ollama (`embeddinggemma:300m`).

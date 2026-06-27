@@ -33,6 +33,10 @@ retrieval:
   # Limiar de relevancia (cosseno): so injeta contexto RAG com score >= este valor.
   min-score: ${RETRIEVAL_MIN_SCORE:0.3}
 
+# tool-registry: ferramentas remotas (calculator, datetime, db_query). lb:// ou http://host:porta.
+tools:
+  base-url: ${TOOLS_URL:lb://tool-registry}
+
 eureka:
   client:
     service-url:

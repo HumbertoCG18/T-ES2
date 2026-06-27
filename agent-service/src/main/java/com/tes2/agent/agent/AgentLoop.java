@@ -12,7 +12,7 @@ import com.tes2.agent.retrieval.RetrievalClient;
 import com.tes2.agent.retrieval.dto.Hit;
 import com.tes2.agent.telemetry.TelemetryEventDto;
 import com.tes2.agent.telemetry.TelemetryProducer;
-import com.tes2.agent.tools.ToolRegistry;
+import com.tes2.agent.tools.ToolRegistryClient;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,11 +48,13 @@ public class AgentLoop {
             uma expressao numerica ao calculator.
             Se houver um bloco "Contexto recuperado dos documentos" e a pergunta for sobre esse conteudo,
             responda com base nele, sem usar ferramentas, e nao invente o que nao estiver la.
+            IMPORTANTE: se voce chamou uma ferramenta e recebeu um resultado (observacao), USE esse
+            resultado na resposta final — nunca diga que nao tem acesso ao que a ferramenta ja devolveu.
             Apos observar o resultado das ferramentas, produza uma resposta final clara em portugues.
             """;
 
     private final LlmClient llmClient;
-    private final ToolRegistry toolRegistry;
+    private final ToolRegistryClient toolRegistryClient;
     private final MemoryClient memoryClient;
     private final RetrievalClient retrievalClient;
     private final TelemetryProducer telemetryProducer;
@@ -62,13 +64,13 @@ public class AgentLoop {
     private final double ragMinScore;
     private final String model;
 
-    public AgentLoop(LlmClient llmClient, ToolRegistry toolRegistry,
+    public AgentLoop(LlmClient llmClient, ToolRegistryClient toolRegistryClient,
                      MemoryClient memoryClient, RetrievalClient retrievalClient,
                      TelemetryProducer telemetryProducer,
                      LlmProperties llmProps, MemoryProperties memoryProps,
                      RetrievalProperties retrievalProps) {
         this.llmClient = llmClient;
-        this.toolRegistry = toolRegistry;
+        this.toolRegistryClient = toolRegistryClient;
         this.memoryClient = memoryClient;
         this.retrievalClient = retrievalClient;
         this.telemetryProducer = telemetryProducer;
@@ -111,10 +113,11 @@ public class AgentLoop {
 
         messages.add(ChatMessage.user(userMessage));
 
-        // Gating de ferramenta: o calculator so e oferecido ao LLM quando a mensagem tem digito.
-        // O modelo local (llama3.1 8B) aluciná tool-calls (chama o calculator ate para "Teste");
-        // nao oferecer a ferramenta quando nao ha aritmetica elimina o problema na raiz.
-        List<ToolSpec> activeTools = needsCalculator(userMessage) ? toolRegistry.specs() : null;
+        // Gating de ferramenta: so oferecemos as ferramentas (do tool-registry) ao LLM quando a
+        // mensagem parece precisar (digito, ou palavra-chave de data/dados). O modelo local
+        // (llama3.1 8B) aluciná tool-calls ate para "Teste"; nao oferecer ferramenta nesses casos
+        // elimina o problema na raiz. Sem necessidade aparente, activeTools = null (nenhuma ferramenta).
+        List<ToolSpec> activeTools = needsTools(userMessage) ? toolRegistryClient.specs() : null;
 
         String finalReply = null;
         int iterations = 0;
@@ -132,7 +135,7 @@ public class AgentLoop {
             for (ToolCall call : assistant.toolCalls()) {
                 String toolName = call.function().name();
                 String args = call.function().arguments();
-                String observation = toolRegistry.execute(toolName, args);
+                String observation = toolRegistryClient.execute(toolName, args);
                 toolsUsed.add(toolName);
                 trace.add("acao: " + toolName + "(" + args + ") -> " + observation);
                 log.info("Ferramenta {} args {} -> {}", toolName, args, observation);
@@ -155,8 +158,31 @@ public class AgentLoop {
         return new AgentResult(finalReply, trace);
     }
 
-    /** O calculator so faz aritmetica -> so o oferecemos quando ha digito na mensagem. */
-    private static boolean needsCalculator(String message) {
-        return message != null && message.chars().anyMatch(Character::isDigit);
+    // Palavras-chave que sugerem necessidade de ferramenta (datetime / db_query).
+    private static final String[] TOOL_HINTS = {
+            "hora", "horas", "data", "dia", "hoje", "agora", "ontem", "amanha", "amanhã",
+            "prazo", "quando", "calcul", "soma", "media", "média", "total",
+            "quant", "banco", "dados", "consulta", "telemetria", "historico", "histórico",
+            "registro", "mensagens", "conversa"
+    };
+
+    /**
+     * Gating: oferece ferramentas quando a mensagem tem digito OU alguma palavra-chave de
+     * data/dados. Saudacoes/testes ("Teste", "oi") nao recebem ferramentas, evitando alucinacao.
+     */
+    private static boolean needsTools(String message) {
+        if (message == null || message.isBlank()) {
+            return false;
+        }
+        if (message.chars().anyMatch(Character::isDigit)) {
+            return true;
+        }
+        String lower = message.toLowerCase(java.util.Locale.ROOT);
+        for (String hint : TOOL_HINTS) {
+            if (lower.contains(hint)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

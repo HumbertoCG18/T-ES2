@@ -1,4 +1,4 @@
-package com.tes2.agent.tools;
+package com.tes2.toolregistry.tools;
 
 /**
  * Avaliador recursivo-descendente para expressoes aritmeticas:

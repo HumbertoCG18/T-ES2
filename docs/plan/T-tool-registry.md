@@ -1,6 +1,11 @@
 # Plano — tool-registry (microsserviço nº 5 da spec)
 
-**Status:** A planejar · **Atualizado:** 2026-06-27
+**Status:** ✅ Concluído (verificado ao vivo) · **Atualizado:** 2026-06-27
+
+> Entregue: `tool-registry` (8084, Eureka) com `calculator`/`datetime`/`db_query`; `agent-service`
+> usa `ToolRegistryClient` (`lb://` + breaker `toolRegistry` + fallback). Verificado: `/chat` usa
+> calculator (→60) e db_query (→"14 eventos") remotos; db_query rejeita não-SELECT; breaker degrada.
+> `datetime` executa mas o llama3.1 às vezes ignora a observação (limitação do modelo). ADR 0011.
 
 ## Objetivo
 

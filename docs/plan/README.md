@@ -54,6 +54,7 @@ uso real dos arquivos/memória de projeto do frontend. Depois 4–8.
 | 6 | Observabilidade — OpenTelemetry + Jaeger + CI | `06-observabilidade.md` | ⬜ A planejar |
 | 7 | Produção em nuvem — manifests + descrição K8s | `07-nuvem-k8s.md` | ⬜ A planejar |
 | 8 | Entrega final — relatório + vídeo + apresentação | `08-entrega-final.md` | ⬜ A planejar |
+| T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (calculator/datetime/db_query remotos; verificado ao vivo; ADR 0011) |
 | B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento |
 
 ## Critérios de aceite (resumo por entrega)

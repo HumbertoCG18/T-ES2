@@ -36,6 +36,7 @@ Working tree limpo. Sem push remoto (branch local).
 | `frontend` (Vite/React) | 5173 | ✅ bônus |
 | `memory-service` | 8082 | ✅ Entrega 3 (Redis curto + Postgres longo) |
 | `retrieval-service` | 8083 | ✅ Entrega 3 (FastAPI + ChromaDB + Eureka) |
+| `tool-registry` | 8084 | ✅ microsserviço nº 5 (calculator/datetime/db_query; ADR 0011) |
 | Redis / PostgreSQL / ChromaDB | 6379 / 5432 / 8000 | ✅ Entrega 3 (`infra/docker-compose.infra.yaml`) |
 | RabbitMQ (AMQP / UI) | 5672 / 15672 | ✅ Entrega 4 (mesma infra; guest/guest) |
 | Ollama | 11434 | infra local |

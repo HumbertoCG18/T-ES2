@@ -143,6 +143,26 @@ docker exec rabbitmq rabbitmqctl list_queues name messages consumers   # autorit
 **4) Broker fora (resiliência):** `docker stop rabbitmq` → `/chat` ainda responde (telemetria
 best-effort) e `/documents/ingest` responde **503**. `docker start rabbitmq` → consumers reconectam.
 
+## tool-registry (microsserviço nº 5)
+
+Serviço Spring (porta **8084**) que expõe as ferramentas; o `agent-service` resolve por
+`lb://tool-registry`. Subir: `cd tool-registry && .\mvnw.cmd spring-boot:run` (precisa do Postgres
+p/ o `db_query`).
+
+```
+# Specs (via gateway) e execucao direta
+curl http://localhost:8080/tools
+curl http://localhost:8084/tools/calculator/execute -H "Content-Type: application/json" -d "{\"arguments\":\"{\\\"expression\\\":\\\"(12+8)*3\\\"}\"}"
+curl http://localhost:8084/tools/db_query/execute   -H "Content-Type: application/json" -d "{\"arguments\":\"{\\\"sql\\\":\\\"SELECT count(*) FROM telemetry_event\\\"}\"}"
+
+# Via /chat (ferramentas remotas)
+curl http://localhost:8080/chat -H "Content-Type: application/json" -d "{\"message\":\"Quanto e (12+8)*3?\"}"
+curl http://localhost:8080/chat -H "Content-Type: application/json" -d "{\"message\":\"Quantos eventos de telemetria existem? Use db_query na tabela telemetry_event.\"}"
+```
+
+Ferramentas: `calculator`, `datetime`, `db_query` (SELECT read-only; rejeita DDL/DML). Breaker
+`toolRegistry`: registry fora → `/chat` responde sem ferramentas (fallback), sem 5xx.
+
 ## Troubleshooting
 
 | Sintoma | Causa provável | Ação |

@@ -1,9 +1,9 @@
-package com.tes2.agent.tools;
-
-import org.junit.jupiter.api.Test;
+package com.tes2.toolregistry.tools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class CalculatorToolTest {
 

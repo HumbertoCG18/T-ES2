@@ -36,6 +36,11 @@ public class RestClientConfig {
         return buildClient(lbBuilder, props.baseUrl());
     }
 
+    @Bean
+    RestClient toolRestClient(@LoadBalanced RestClient.Builder lbBuilder, ToolRegistryProperties props) {
+        return buildClient(lbBuilder, props.baseUrl());
+    }
+
     /**
      * lb://  → usa o builder load-balanced (host = nome lógico no Eureka).
      * http:// → builder simples (URL fixa); o interceptor de LB trataria o host como serviceId,

@@ -1,6 +1,4 @@
-package com.tes2.agent.tools;
-
-import com.tes2.agent.llm.dto.ToolSpec;
+package com.tes2.toolregistry.tools;
 
 /** Ferramenta invocavel pelo agente. Cada implementacao e um bean Spring. */
 public interface Tool {

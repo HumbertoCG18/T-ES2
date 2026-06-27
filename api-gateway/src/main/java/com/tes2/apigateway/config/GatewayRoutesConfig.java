@@ -14,6 +14,8 @@ public class GatewayRoutesConfig {
                 .route("agent-service", r -> r.path("/chat/**").uri("lb://agent-service"))
                 // Ingestao assincrona de documentos (Entrega 4) -> produtor no agent-service.
                 .route("agent-documents", r -> r.path("/documents/**").uri("lb://agent-service"))
+                // Inspecao das ferramentas registradas (tool-registry).
+                .route("tool-registry", r -> r.path("/tools/**").uri("lb://tool-registry"))
                 .build();
     }
 }
