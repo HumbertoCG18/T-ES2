@@ -1,0 +1,8 @@
+[project]
+name = "llm-gateway"
+version = "0.1.0"
+description = "Proxy unificado para LLMs locais (LiteLLM + Ollama)"
+requires-python = ">=3.11"
+dependencies = [
+    "litellm[proxy]>=1.55.0",
+]

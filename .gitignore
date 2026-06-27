@@ -1,0 +1,42 @@
+# ===== Java / Maven =====
+target/
+*.class
+build/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.uv/
+uv.lock
+
+# ===== Segredos / ambiente =====
+.env
+.env.*
+*.local
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Dados / volumes (Docker, a partir da Entrega 5) =====
+data/
+pgdata/
+chroma/
+qdrant_storage/
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# ===== SO =====
+.DS_Store
+Thumbs.db
+/.agents/skills

@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: agent-service
+
+server:
+  port: 8081
+
+# Acesso ao llm-gateway (LiteLLM). Sobrescrever via env em Docker/K8s:
+#   LLM_BASE_URL, LLM_MODEL, LLM_MAX_ITERATIONS
+llm:
+  base-url: ${LLM_BASE_URL:http://localhost:4000}
+  model: ${LLM_MODEL:chat}
+  max-iterations: ${LLM_MAX_ITERATIONS:5}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.tes2.agent: INFO

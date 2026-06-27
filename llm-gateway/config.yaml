@@ -1,0 +1,28 @@
+# Configuracao do LiteLLM Proxy (llm-gateway).
+# Expoe uma API OpenAI-compativel (/v1/chat/completions) e abstrai o provedor de LLM.
+# Aqui o backend e o Ollama local (nenhuma dependencia de nuvem).
+#
+# 'ollama_chat/' usa o endpoint de chat do Ollama (melhor para tool calling).
+# O modelo logico 'chat' e o que os demais servicos referenciam.
+
+model_list:
+  - model_name: chat
+    litellm_params:
+      model: ollama_chat/llama3.1:latest
+      api_base: os.environ/OLLAMA_BASE_URL
+
+  # Modelo mais leve (cabe nos 4 GB da RTX 4050). Tool calling menos confiavel.
+  - model_name: chat-light
+    litellm_params:
+      model: ollama_chat/gemma3:4b
+      api_base: os.environ/OLLAMA_BASE_URL
+
+  # Embeddings para o retrieval-service (RAG), Entrega 3.
+  - model_name: embeddings
+    litellm_params:
+      model: ollama/embeddinggemma:300m
+      api_base: os.environ/OLLAMA_BASE_URL
+
+litellm_settings:
+  drop_params: true        # ignora params nao suportados pelo backend
+  request_timeout: 600     # modelos locais podem demorar a responder
