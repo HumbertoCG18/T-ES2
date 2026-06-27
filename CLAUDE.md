@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado do repositório
 
-**Entregas 1–2 implementadas** (builds verdes; falta verificação ao vivo da 2). Serviços:
-`agent-service/` (Spring Boot, ciclo agêntico + Eureka client + circuit breaker),
-`llm-gateway/` (LiteLLM/Ollama), `name-server/` (Eureka Server, 8761), `api-gateway/`
-(Spring Cloud Gateway, 8080). Faltam `memory-service`, `retrieval-service`, `tool-registry`
-(Entrega 3+). Arquitetura-alvo na spec (`docs/t1_2026_1.pdf`); estado em `docs/plan/README.md`.
+**Entregas 1–2 concluídas (verificadas ao vivo).** Serviços: `agent-service/` (Spring Boot,
+ciclo agêntico + Eureka client + circuit breaker), `llm-gateway/` (LiteLLM/Ollama),
+`name-server/` (Eureka Server, 8761), `api-gateway/` (Spring Cloud Gateway, 8080). Bônus:
+`frontend/` (Vite + React + Tailwind + shadcn) — app shell estilo claude.ai, chat funcionando
+ponta-a-ponta com LLM real; em expansão (ver `docs/plan/B-frontend.md`). Faltam `memory-service`,
+`retrieval-service`, `tool-registry` (Entrega 3+). **Sempre conferir `docs/plan/README.md`** para
+o estado atual e o que falta. Arquitetura-alvo na spec (`docs/t1_2026_1.pdf`).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +

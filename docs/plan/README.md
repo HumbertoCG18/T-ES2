@@ -20,6 +20,29 @@ delegada a **subagents**; a thread principal integra e verifica.
 
 > Regra: nada de codar entrega sem plano aprovado. Plano pequeno e factível > plano perfeito.
 
+## Status atual (2026-06-27)
+
+**Onde estamos:** Entregas 1 e 2 concluídas e verificadas ao vivo; bônus de frontend com app
+shell funcional e chat real ponta-a-ponta. Próxima entrega de spec = **Entrega 3 (Memória e
+RAG)** — e é ela que destrava o uso real dos arquivos de Projeto no frontend (RAG).
+
+**Feito:**
+- ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`, calculadora) + `llm-gateway`
+  (LiteLLM/Ollama). Commit `bd5c90f`.
+- ✅ **Entrega 2** — `name-server` (Eureka), `api-gateway` (Spring Cloud Gateway), circuit
+  breaker com fallback. Verificada ao vivo. Commit `b99472d`.
+- ✅ **Correção** — Eureka self-preservation desligado em dev (banner "EMERGENCY"). *(não commitado)*
+- 🔨 **Bônus frontend** — Vite + React + Tailwind + shadcn: app shell (sidebar, projetos,
+  configurações, dark mode, busca, persistência), chat com markdown e **timeline do ciclo
+  agêntico**. Proxy `/api`→gateway corrigido. Chat **funcionando com LLM real + tool calling**.
+  *(não commitado)*
+
+**Falta (spec):** Entregas 3–8 (RAG, mensageria, containers, observabilidade, K8s, relatório).
+**Falta (frontend):** ver [`B-frontend.md`](B-frontend.md) — arquivos/memória/instruções de
+projeto, LaTeX, blocos de código, editar/regenerar, anexo no chat, copiar resposta.
+
+> Pendência de commit: correção do Eureka + todo o `frontend/`.
+
 ## Estado das entregas
 
 | # | Entrega | Plano | Status |
@@ -32,7 +55,7 @@ delegada a **subagents**; a thread principal integra e verifica.
 | 6 | Observabilidade — OpenTelemetry + Jaeger + CI | `06-observabilidade.md` | ⬜ A planejar |
 | 7 | Produção em nuvem — manifests + descrição K8s | `07-nuvem-k8s.md` | ⬜ A planejar |
 | 8 | Entrega final — relatório + vídeo + apresentação | `08-entrega-final.md` | ⬜ A planejar |
-| B | Bônus — frontend shadcn (demo) | `B-frontend.md` | ⬜ Opcional |
+| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento |
 
 ## Critérios de aceite (resumo por entrega)
 

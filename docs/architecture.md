@@ -11,6 +11,13 @@ Plataforma de agentes de IA conversacionais. Um agente opera no ciclo
 observa o resultado e repete até a resposta final. Roda 100% local (sem nuvem) via Docker
 Compose; alvo de produção é Kubernetes.
 
+## Cliente (bônus, fora da spec)
+
+`frontend/` — app web estilo claude.ai (Vite + React + Tailwind + shadcn). Consome `POST /chat`
+via `api-gateway` (proxy de dev `/api` → `:8080`, com rewrite removendo `/api`). Não é exigido
+pela spec; serve a teste e à demonstração. O "Cliente (HTTP)" do diagrama abaixo pode ser este
+frontend, `curl` ou Postman.
+
 ## Microsserviços
 
 | # | Serviço | Responsabilidade | Stack | Status |

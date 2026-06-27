@@ -66,7 +66,7 @@ cd agent-service
 ## Roadmap (entregas)
 
 1. ✅ **Fundação** — agent-service + llm-gateway via REST.
-2. ⬜ Infraestrutura — Eureka (name-server) + API Gateway + circuit breaker.
+2. ✅ **Infraestrutura** — Eureka (name-server) + API Gateway + circuit breaker (verificada ao vivo).
 3. ⬜ Memória e RAG — memory-service (Redis curto prazo + PostgreSQL longo prazo) +
    retrieval-service (ChromaDB) com ingestão de documentos.
 4. ⬜ Mensageria — RabbitMQ (≥1 fluxo assíncrono: telemetria / ingestão / notificação).
@@ -76,11 +76,19 @@ cd agent-service
    obrigatório).
 8. ⬜ Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação.
 
-**Bônus (apoio à demo):**
+**Bônus (apoio à demo) — `frontend/`:** 🔨 em andamento. App web estilo claude.ai (Vite +
+React + Tailwind + shadcn) consumindo `POST /chat` via gateway. Já feito: app shell (sidebar,
+projetos, configurações, dark mode, busca, persistência), chat com markdown e **timeline do
+ciclo agêntico**; verificado ao vivo com LLM real + tool calling. A fazer: arquivos/memória/
+instruções de projeto, LaTeX, blocos de código, editar/regenerar, anexo no chat, copiar
+resposta. Detalhes e status em [`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
 
-- ⬜ **frontend** — UI de chat com **shadcn/ui** (React) consumindo `POST /chat`. Não é
-  requisito da spec; serve só para a demonstração em vídeo (Entrega 8) ficar mais clara.
-  Manter mínimo: uma página, sem desviar esforço do backend.
+Rodar o frontend (com a plataforma no ar):
+```bash
+cd frontend
+npm install     # primeira vez
+npm run dev     # http://localhost:5173 (proxy /api -> gateway 8080)
+```
 
 ## Entregáveis não-código (checklist — valem nota, fáceis de esquecer)
 
