@@ -332,6 +332,7 @@ interface StoreValue {
   newConversation: (projectId?: string | null) => void
   selectConversation: (id: string) => void
   openProject: (id: string) => void
+  showCapabilities: () => void
   sendMessage: (text: string, attachments?: ComposerAttachment[]) => void
   editAndResend: (convId: string, messageIndex: number, newContent: string) => void
   regenerateLast: (convId: string) => void
@@ -416,6 +417,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const openProject = useCallback((id: string) => {
     dispatch({ type: "SET_VIEW", view: { type: "project", projectId: id } })
+  }, [])
+
+  const showCapabilities = useCallback(() => {
+    dispatch({ type: "SET_VIEW", view: { type: "capabilities" } })
   }, [])
 
   /**
@@ -659,6 +664,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       newConversation,
       selectConversation,
       openProject,
+      showCapabilities,
       sendMessage,
       editAndResend,
       regenerateLast,
@@ -684,6 +690,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       newConversation,
       selectConversation,
       openProject,
+      showCapabilities,
       sendMessage,
       editAndResend,
       regenerateLast,

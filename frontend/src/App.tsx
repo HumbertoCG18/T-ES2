@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/sidebar/Sidebar"
 import { MobileSidebar } from "@/components/sidebar/MobileSidebar"
 import { ChatView } from "@/components/chat/ChatView"
 import { ProjectView } from "@/components/project/ProjectView"
+import { CapabilitiesView } from "@/components/capabilities/CapabilitiesView"
 import { useStore } from "@/store/store"
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
   }, [state.view])
 
   const isProject = state.view.type === "project" && activeProject
+  const isCapabilities = state.view.type === "capabilities"
 
   return (
     <TooltipProvider delayDuration={350} skipDelayDuration={0}>
@@ -40,6 +42,12 @@ function App() {
           {isProject ? (
             <ProjectView
               project={activeProject}
+              collapsed={collapsed}
+              onExpand={() => setCollapsed(false)}
+              onOpenMobile={() => setMobileOpen(true)}
+            />
+          ) : isCapabilities ? (
+            <CapabilitiesView
               collapsed={collapsed}
               onExpand={() => setCollapsed(false)}
               onOpenMobile={() => setMobileOpen(true)}

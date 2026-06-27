@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { PanelLeft, Plus, Search, X } from "lucide-react"
+import { PanelLeft, Plus, Search, Sparkles, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tooltip } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
 import { useStore } from "@/store/store"
 import { ConversationList } from "./ConversationList"
 import { ProjectList } from "./ProjectList"
@@ -16,8 +17,9 @@ export function Sidebar({
   onClose: () => void
   mobile?: boolean
 }) {
-  const { newConversation } = useStore()
+  const { newConversation, showCapabilities, state } = useStore()
   const [query, setQuery] = useState("")
+  const capActive = state.view.type === "capabilities"
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -77,6 +79,24 @@ export function Sidebar({
             className="h-9 w-full rounded-lg border border-transparent bg-foreground/[0.05] pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-accent/40 focus-visible:bg-card focus-visible:ring-2 focus-visible:ring-accent/30"
           />
         </div>
+      </div>
+
+      {/* Navegação */}
+      <div className="px-3 pb-2">
+        <button
+          type="button"
+          onClick={showCapabilities}
+          aria-current={capActive ? "page" : undefined}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+            capActive
+              ? "bg-foreground/[0.06] text-foreground"
+              : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",
+          )}
+        >
+          <Sparkles className="h-4 w-4 text-accent" aria-hidden="true" />
+          Capacidades
+        </button>
       </div>
 
       {/* Conteúdo rolável */}

@@ -84,6 +84,7 @@ export interface Settings {
 export type View =
   | { type: "chat"; conversationId: string | null; draftProjectId: string | null }
   | { type: "project"; projectId: string }
+  | { type: "capabilities" }
 
 export interface AppState {
   conversations: Conversation[]
