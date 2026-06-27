@@ -1,5 +1,14 @@
 import { useState } from "react"
-import { PanelLeft, Plus, Search, Sparkles, X } from "lucide-react"
+import {
+  FolderClosed,
+  MessagesSquare,
+  PanelLeft,
+  Plus,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tooltip } from "@/components/ui/tooltip"
@@ -18,9 +27,35 @@ export function Sidebar({
   onClose: () => void
   mobile?: boolean
 }) {
-  const { newConversation, showCapabilities, state } = useStore()
+  const {
+    newConversation,
+    showCapabilities,
+    showRecents,
+    showProjectsList,
+    state,
+  } = useStore()
   const [query, setQuery] = useState("")
-  const capActive = state.view.type === "capabilities"
+
+  const navItems: { label: string; icon: LucideIcon; onClick: () => void; active: boolean }[] = [
+    {
+      label: "Conversas",
+      icon: MessagesSquare,
+      onClick: showRecents,
+      active: state.view.type === "recents",
+    },
+    {
+      label: "Projetos",
+      icon: FolderClosed,
+      onClick: showProjectsList,
+      active: state.view.type === "projectsList",
+    },
+    {
+      label: "Capacidades",
+      icon: Sparkles,
+      onClick: showCapabilities,
+      active: state.view.type === "capabilities",
+    },
+  ]
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -83,21 +118,27 @@ export function Sidebar({
       </div>
 
       {/* Navegação */}
-      <div className="px-3 pb-2">
-        <button
-          type="button"
-          onClick={showCapabilities}
-          aria-current={capActive ? "page" : undefined}
-          className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
-            capActive
-              ? "bg-foreground/[0.06] text-foreground"
-              : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",
-          )}
-        >
-          <Sparkles className="h-4 w-4 text-accent" aria-hidden="true" />
-          Capacidades
-        </button>
+      <div className="flex flex-col gap-0.5 px-3 pb-2">
+        {navItems.map(({ label, icon: Icon, onClick, active }) => (
+          <button
+            key={label}
+            type="button"
+            onClick={onClick}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+              active
+                ? "bg-foreground/[0.06] text-foreground"
+                : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",
+            )}
+          >
+            <Icon
+              className={cn("h-4 w-4", active ? "text-accent" : "text-muted-foreground")}
+              aria-hidden="true"
+            />
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Conteúdo rolável */}

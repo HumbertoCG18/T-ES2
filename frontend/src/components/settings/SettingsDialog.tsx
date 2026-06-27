@@ -11,8 +11,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { useStore } from "@/store/store"
-import { MODELS, type ThemePref } from "@/store/types"
+import {
+  FONT_OPTIONS,
+  MODELS,
+  RESPONSE_STYLES,
+  type ThemePref,
+} from "@/store/types"
 
 const APP_VERSION = "1.0.0"
 
@@ -44,8 +51,49 @@ function Row({
   )
 }
 
+function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  options: { value: T; label: string }[]
+  value: T
+  onChange: (v: T) => void
+  ariaLabel: string
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      className="flex items-center gap-1 rounded-xl bg-foreground/[0.05] p-1"
+    >
+      {options.map((opt) => {
+        const selected = value === opt.value
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              "rounded-lg px-2.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+              selected
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function SettingsDialog({ children }: { children: ReactNode }) {
-  const { state, setTheme, setModel } = useStore()
+  const { state, setTheme, setModel, updateSettings } = useStore()
   const [open, setOpen] = useState(false)
 
   return (
@@ -63,6 +111,9 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
           <TabsList className="w-full">
             <TabsTrigger value="geral" className="flex-1">
               Geral
+            </TabsTrigger>
+            <TabsTrigger value="perfil" className="flex-1">
+              Personalização
             </TabsTrigger>
             <TabsTrigger value="modelo" className="flex-1">
               Modelo
@@ -111,6 +162,69 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                   Português
                 </span>
               </Row>
+            </div>
+          </TabsContent>
+
+          {/* ---------- Personalização ---------- */}
+          <TabsContent value="perfil">
+            <div className="divide-y divide-border">
+              <Row title="Fonte" description="Tipo de letra da interface.">
+                <Segmented
+                  ariaLabel="Fonte"
+                  options={FONT_OPTIONS}
+                  value={state.settings.font ?? "sans"}
+                  onChange={(font) => updateSettings({ font })}
+                />
+              </Row>
+
+              <Row
+                title="Tipo de resposta"
+                description="Estilo preferido das respostas do agente."
+              >
+                <Segmented
+                  ariaLabel="Tipo de resposta"
+                  options={RESPONSE_STYLES}
+                  value={state.settings.responseStyle ?? "normal"}
+                  onChange={(responseStyle) => updateSettings({ responseStyle })}
+                />
+              </Row>
+
+              <div className="py-3">
+                <label
+                  htmlFor="set-nickname"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Como a IA pode te chamar
+                </label>
+                <Input
+                  id="set-nickname"
+                  className="mt-1.5"
+                  value={state.settings.nickname ?? ""}
+                  onChange={(e) => updateSettings({ nickname: e.target.value })}
+                  placeholder="Ex.: Humberto"
+                  maxLength={60}
+                />
+              </div>
+
+              <div className="py-3">
+                <label
+                  htmlFor="set-instructions"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Instruções gerais para a IA
+                </label>
+                <Textarea
+                  id="set-instructions"
+                  className="mt-1.5 min-h-[88px]"
+                  value={state.settings.instructions ?? ""}
+                  onChange={(e) => updateSettings({ instructions: e.target.value })}
+                  placeholder="Ex.: responda em português, seja direto e cite as fontes."
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Salvo localmente. Observação: a API atual ainda não envia estas
+                  preferências ao agente (serão ligadas ao system prompt depois).
+                </p>
+              </div>
             </div>
           </TabsContent>
 

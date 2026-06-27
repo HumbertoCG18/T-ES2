@@ -68,8 +68,9 @@ export interface Project {
   favorite?: boolean
 }
 
-/** Limite de conhecimento por projeto (soma do tamanho dos arquivos), p/ a barra de capacidade. */
-export const PROJECT_KNOWLEDGE_LIMIT = 1_000_000 // ~1 MB
+/** Limite de conhecimento por projeto (soma do tamanho dos arquivos), p/ a barra de capacidade.
+ *  Binários guardam só metadados e texto é truncado, então o limite pode ser generoso. */
+export const PROJECT_KNOWLEDGE_LIMIT = 30_000_000 // ~28.6 MB
 
 /** Preferência de tema; "system" segue prefers-color-scheme. */
 export type ThemePref = "light" | "dark" | "system"
@@ -82,16 +83,44 @@ export const MODELS: { id: ModelId; label: string }[] = [
   { id: "gemma3:4b", label: "gemma3:4b" },
 ]
 
+/** Fonte da interface. */
+export type FontPref = "sans" | "serif" | "mono"
+
+/** Estilo de resposta preferido (cosmético até o backend aceitar). */
+export type ResponseStyle = "normal" | "conciso" | "detalhado"
+
 export interface Settings {
   theme: ThemePref
   model: ModelId
+  /** Fonte da interface (aplicada via [data-font] no <html>). */
+  font?: FontPref
+  /** Estilo de resposta preferido. */
+  responseStyle?: ResponseStyle
+  /** Instruções gerais para a LLM. */
+  instructions?: string
+  /** Como a LLM pode te chamar. */
+  nickname?: string
 }
+
+export const FONT_OPTIONS: { value: FontPref; label: string }[] = [
+  { value: "sans", label: "Padrão" },
+  { value: "serif", label: "Serifada" },
+  { value: "mono", label: "Monoespaçada" },
+]
+
+export const RESPONSE_STYLES: { value: ResponseStyle; label: string }[] = [
+  { value: "normal", label: "Equilibrada" },
+  { value: "conciso", label: "Concisa" },
+  { value: "detalhado", label: "Detalhada" },
+]
 
 /** Qual conteúdo a área principal exibe. */
 export type View =
   | { type: "chat"; conversationId: string | null; draftProjectId: string | null }
   | { type: "project"; projectId: string }
   | { type: "capabilities" }
+  | { type: "recents" }
+  | { type: "projectsList" }
 
 export interface AppState {
   conversations: Conversation[]

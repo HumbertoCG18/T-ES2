@@ -7,6 +7,8 @@ import { MobileSidebar } from "@/components/sidebar/MobileSidebar"
 import { ChatView } from "@/components/chat/ChatView"
 import { ProjectView } from "@/components/project/ProjectView"
 import { CapabilitiesView } from "@/components/capabilities/CapabilitiesView"
+import { RecentsView } from "@/components/recents/RecentsView"
+import { ProjectsGalleryView } from "@/components/projects/ProjectsGalleryView"
 import { useStore } from "@/store/store"
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
 
   const isProject = state.view.type === "project" && activeProject
   const isCapabilities = state.view.type === "capabilities"
+  const isRecents = state.view.type === "recents"
+  const isProjectsList = state.view.type === "projectsList"
 
   return (
     <TooltipProvider delayDuration={350} skipDelayDuration={0}>
@@ -48,6 +52,18 @@ function App() {
             />
           ) : isCapabilities ? (
             <CapabilitiesView
+              collapsed={collapsed}
+              onExpand={() => setCollapsed(false)}
+              onOpenMobile={() => setMobileOpen(true)}
+            />
+          ) : isRecents ? (
+            <RecentsView
+              collapsed={collapsed}
+              onExpand={() => setCollapsed(false)}
+              onOpenMobile={() => setMobileOpen(true)}
+            />
+          ) : isProjectsList ? (
+            <ProjectsGalleryView
               collapsed={collapsed}
               onExpand={() => setCollapsed(false)}
               onOpenMobile={() => setMobileOpen(true)}

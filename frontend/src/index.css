@@ -32,6 +32,15 @@
   --radius-2xl: 1.5rem;
 }
 
+/* ---------- Fonte da interface (Configurações > Personalização) ----------
+ * data-font no <html>; redefine --font-sans, que o `html { font-family }` resolve. */
+html[data-font="serif"] {
+  --font-sans: var(--font-display);
+}
+html[data-font="mono"] {
+  --font-sans: var(--font-mono);
+}
+
 /* ---------- Tema CLARO (padrão) ---------- */
 :root {
   --background: #faf9f5; /* off-white quente */

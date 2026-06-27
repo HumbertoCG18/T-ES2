@@ -6,6 +6,21 @@ function startOfDay(ts: number): number {
   return d.getTime()
 }
 
+/** Tempo relativo curto: "agora", "há 5 min", "há 3 h", "ontem", "há 4 dias", "27 de jun.". */
+export function formatRelativeTime(ts: number): string {
+  const diff = Date.now() - ts
+  const min = 60_000
+  const hour = 3_600_000
+  const day = 86_400_000
+  if (diff < min) return "agora"
+  if (diff < hour) return `há ${Math.floor(diff / min)} min`
+  if (diff < day) return `há ${Math.floor(diff / hour)} h`
+  const days = Math.floor(diff / day)
+  if (days === 1) return "ontem"
+  if (days < 7) return `há ${days} dias`
+  return new Date(ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
+}
+
 export interface ConversationGroup {
   label: string
   items: Conversation[]

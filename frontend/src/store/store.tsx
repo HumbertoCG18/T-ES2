@@ -78,6 +78,7 @@ type Action =
   | { type: "DELETE_PROJECT"; id: string }
   | { type: "SET_THEME"; theme: ThemePref }
   | { type: "SET_MODEL"; model: ModelId }
+  | { type: "UPDATE_SETTINGS"; patch: Partial<Settings> }
 
 function touch(conv: Conversation): Conversation {
   return { ...conv, updatedAt: Date.now() }
@@ -263,6 +264,9 @@ function reducer(state: AppState, action: Action): AppState {
     case "SET_MODEL":
       return { ...state, settings: { ...state.settings, model: action.model } }
 
+    case "UPDATE_SETTINGS":
+      return { ...state, settings: { ...state.settings, ...action.patch } }
+
     default:
       return state
   }
@@ -351,6 +355,8 @@ interface StoreValue {
   selectConversation: (id: string) => void
   openProject: (id: string) => void
   showCapabilities: () => void
+  showRecents: () => void
+  showProjectsList: () => void
   toggleConversationFavorite: (id: string) => void
   toggleProjectFavorite: (id: string) => void
   sendMessage: (text: string, attachments?: ComposerAttachment[]) => void
@@ -371,6 +377,7 @@ interface StoreValue {
   deleteProject: (id: string) => void
   setTheme: (theme: ThemePref) => void
   setModel: (model: ModelId) => void
+  updateSettings: (patch: Partial<Settings>) => void
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -421,6 +428,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => cancelAnimationFrame(id)
   }, [])
 
+  // Aplica a fonte da interface ([data-font] no <html>; regras em index.css).
+  useEffect(() => {
+    document.documentElement.dataset.font = state.settings.font ?? "sans"
+  }, [state.settings.font])
+
   const newConversation = useCallback((projectId: string | null = null) => {
     dispatch({
       type: "SET_VIEW",
@@ -441,6 +453,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const showCapabilities = useCallback(() => {
     dispatch({ type: "SET_VIEW", view: { type: "capabilities" } })
+  }, [])
+
+  const showRecents = useCallback(() => {
+    dispatch({ type: "SET_VIEW", view: { type: "recents" } })
+  }, [])
+
+  const showProjectsList = useCallback(() => {
+    dispatch({ type: "SET_VIEW", view: { type: "projectsList" } })
   }, [])
 
   const toggleConversationFavorite = useCallback((id: string) => {
@@ -664,6 +684,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "SET_MODEL", model })
   }, [])
 
+  const updateSettings = useCallback((patch: Partial<Settings>) => {
+    dispatch({ type: "UPDATE_SETTINGS", patch })
+  }, [])
+
   const activeConversation = useMemo(() => {
     if (state.view.type !== "chat") return null
     const id = state.view.conversationId
@@ -693,6 +717,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       selectConversation,
       openProject,
       showCapabilities,
+      showRecents,
+      showProjectsList,
       toggleConversationFavorite,
       toggleProjectFavorite,
       sendMessage,
@@ -710,6 +736,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteProject,
       setTheme,
       setModel,
+      updateSettings,
     }),
     [
       state,
@@ -721,6 +748,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       selectConversation,
       openProject,
       showCapabilities,
+      showRecents,
+      showProjectsList,
       toggleConversationFavorite,
       toggleProjectFavorite,
       sendMessage,
@@ -738,6 +767,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteProject,
       setTheme,
       setModel,
+      updateSettings,
     ],
   )
 
