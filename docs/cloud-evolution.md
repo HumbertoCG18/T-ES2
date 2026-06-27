@@ -21,7 +21,10 @@
 - [ ] **Manifests** por serviço: `Deployment` + `Service` (+ `HorizontalPodAutoscaler`).
 - [ ] **ConfigMap / Secret** no lugar das env vars do Compose (config externalizada já pronta).
 - [ ] **Service discovery:** trocar Eureka por DNS de `Service` do K8s (ou manter Eureka como
-  está, decisão a justificar).
+  está, decisão a justificar). Se mantiver o Eureka, **religar `enable-self-preservation: true`**
+  em produção — em dev ele foi desligado (poucas instâncias disparavam o modo de proteção
+  indevidamente). O self-preservation protege contra remover instâncias vivas durante blips de
+  rede, cenário real só na nuvem.
 - [ ] **Ingress** como entrada externa, à frente do `api-gateway`.
 - [ ] **Estado:** Postgres/Redis/RabbitMQ via operadores ou serviços gerenciados (não rodar
   como Pods efêmeros sem volume).
