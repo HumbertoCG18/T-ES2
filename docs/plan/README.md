@@ -26,22 +26,21 @@ delegada a **subagents**; a thread principal integra e verifica.
 shell funcional e chat real ponta-a-ponta. Próxima entrega de spec = **Entrega 3 (Memória e
 RAG)** — e é ela que destrava o uso real dos arquivos de Projeto no frontend (RAG).
 
-**Feito:**
+**Feito (commitado no branch `dev-HCG`):**
 - ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`, calculadora) + `llm-gateway`
   (LiteLLM/Ollama). Commit `bd5c90f`.
 - ✅ **Entrega 2** — `name-server` (Eureka), `api-gateway` (Spring Cloud Gateway), circuit
   breaker com fallback. Verificada ao vivo. Commit `b99472d`.
-- ✅ **Correção** — Eureka self-preservation desligado em dev (banner "EMERGENCY"). *(não commitado)*
-- 🔨 **Bônus frontend** — Vite + React + Tailwind + shadcn: app shell (sidebar, projetos,
-  configurações, dark mode, busca, persistência), chat com markdown e **timeline do ciclo
-  agêntico**. Proxy `/api`→gateway corrigido. Chat **funcionando com LLM real + tool calling**.
-  *(não commitado)*
+- ✅ **Correção** — Eureka self-preservation desligado em dev (banner "EMERGENCY"). Commit `e431829`.
+- 🔨 **Bônus frontend** — Vite + React + Tailwind + shadcn: app shell, chat com markdown/LaTeX/
+  código, **timeline do ciclo agêntico**, projetos (instruções/memória/arquivos), editar/
+  regenerar, copiar, anexos. Chat **funcionando com LLM real + tool calling**. Commits `ec63edd`,
+  `b5a20a1`. (Lote de features concluído; ver `B-frontend.md` para o que falta integrar ao backend.)
+
+**Foco agora:** voltar ao **backend da spec** — **Entrega 3 (Memória e RAG)**, que destrava o
+uso real dos arquivos/memória de projeto do frontend. Depois 4–8.
 
 **Falta (spec):** Entregas 3–8 (RAG, mensageria, containers, observabilidade, K8s, relatório).
-**Falta (frontend):** ver [`B-frontend.md`](B-frontend.md) — arquivos/memória/instruções de
-projeto, LaTeX, blocos de código, editar/regenerar, anexo no chat, copiar resposta.
-
-> Pendência de commit: correção do Eureka + todo o `frontend/`.
 
 ## Estado das entregas
 
