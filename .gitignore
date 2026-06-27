@@ -40,3 +40,10 @@ qdrant_storage/
 .DS_Store
 Thumbs.db
 /.agents/skills
+
+# ===== Frontend (Node) =====
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+npm-debug.log*
