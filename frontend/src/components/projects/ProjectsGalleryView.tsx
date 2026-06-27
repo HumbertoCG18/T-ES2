@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react"
-import { ArrowDownUp, FileText, Menu, PanelLeft, Plus, Search } from "lucide-react"
+import { ArrowDownUp, FileText, Plus, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Tooltip } from "@/components/ui/tooltip"
+import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   DropdownMenu,
@@ -55,19 +55,12 @@ export function ProjectsGalleryView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-1 border-b border-border bg-background/80 px-3 backdrop-blur">
-        <Button variant="iconGhost" className="md:hidden" onClick={onOpenMobile} aria-label="Abrir menu">
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        </Button>
-        {collapsed && (
-          <Tooltip label="Expandir barra lateral" side="bottom">
-            <Button variant="iconGhost" className="hidden md:inline-flex" onClick={onExpand} aria-label="Expandir barra lateral">
-              <PanelLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Tooltip>
-        )}
-        <span className="px-2 text-sm font-medium text-foreground">Projetos</span>
-      </header>
+      <ViewHeader
+        title="Projetos"
+        collapsed={collapsed}
+        onExpand={onExpand}
+        onOpenMobile={onOpenMobile}
+      />
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="mx-auto w-full max-w-4xl px-4 py-8">

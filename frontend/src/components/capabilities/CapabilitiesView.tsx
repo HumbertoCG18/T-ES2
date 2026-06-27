@@ -9,7 +9,7 @@ import {
   Wrench,
 } from "lucide-react"
 
-import { TopBar } from "@/components/chat/TopBar"
+import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { fetchTools, type ToolInfo } from "@/lib/api"
 
@@ -104,7 +104,12 @@ export function CapabilitiesView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <TopBar collapsed={collapsed} onExpand={onExpand} onOpenMobile={onOpenMobile} />
+      <ViewHeader
+        title="Capacidades"
+        collapsed={collapsed}
+        onExpand={onExpand}
+        onOpenMobile={onOpenMobile}
+      />
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="mx-auto w-full max-w-3xl px-4 py-8">

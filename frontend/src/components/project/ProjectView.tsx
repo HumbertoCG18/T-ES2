@@ -1,10 +1,31 @@
 import { useEffect, useRef, useState } from "react"
-import { FolderClosed, Menu, MessageSquare, PanelLeft, Plus } from "lucide-react"
+import {
+  FolderClosed,
+  MessageSquare,
+  MoreHorizontal,
+  Plus,
+  Star,
+  Trash2,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Tooltip } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ModelSelector } from "@/components/chat/ModelSelector"
 import { useStore } from "@/store/store"
 import type { Project } from "@/store/types"
@@ -116,7 +137,9 @@ export function ProjectView({
   onExpand,
   onOpenMobile,
 }: ProjectViewProps) {
-  const { state, selectConversation, newConversation } = useStore()
+  const { state, selectConversation, newConversation, deleteProject, toggleProjectFavorite } =
+    useStore()
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const conversations = state.conversations
     .filter((c) => c.projectId === project.id)
@@ -124,38 +147,13 @@ export function ProjectView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-1 border-b border-border bg-background/80 px-3 backdrop-blur">
-        <Button
-          variant="iconGhost"
-          className="md:hidden"
-          onClick={onOpenMobile}
-          aria-label="Abrir menu"
-        >
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        </Button>
-        {collapsed && (
-          <Tooltip label="Expandir barra lateral" side="bottom">
-            <Button
-              variant="iconGhost"
-              className="hidden md:inline-flex"
-              onClick={onExpand}
-              aria-label="Expandir barra lateral"
-            >
-              <PanelLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Tooltip>
-        )}
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <FolderClosed
-            className="h-4 w-4 shrink-0 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <span className="truncate text-sm font-medium text-foreground">
-            {project.name}
-          </span>
-        </div>
-        <ModelSelector />
-      </header>
+      <ViewHeader
+        title={project.name}
+        collapsed={collapsed}
+        onExpand={onExpand}
+        onOpenMobile={onOpenMobile}
+        right={<ModelSelector />}
+      />
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="mx-auto w-full max-w-4xl px-4 py-8">
@@ -168,15 +166,62 @@ export function ProjectView({
               </div>
               <EditableName project={project} />
             </div>
-            <Button
-              variant="default"
-              onClick={() => newConversation(project.id)}
-              className="h-9 gap-1.5"
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Nova conversa neste projeto
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                onClick={() => newConversation(project.id)}
+                className="h-9 gap-1.5"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Nova conversa neste projeto
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Opções do projeto"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent data-[state=open]:bg-foreground/[0.05]"
+                >
+                  <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => toggleProjectFavorite(project.id)}>
+                    <Star aria-hidden="true" />
+                    {project.favorite ? "Remover dos favoritos" : "Favoritar"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem danger onSelect={() => setConfirmOpen(true)}>
+                    <Trash2 aria-hidden="true" />
+                    Excluir projeto
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
+
+          <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Excluir projeto?</DialogTitle>
+                <DialogDescription>
+                  “{project.name}” será removido. As conversas deste projeto são
+                  mantidas, apenas sem o projeto.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    deleteProject(project.id)
+                    setConfirmOpen(false)
+                  }}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  Excluir
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/*
            * TODO(entrega-3): instruções, memória e arquivos abaixo ainda são
