@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { FolderInput, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { FolderInput, MoreHorizontal, Pencil, Star, Trash2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import {
@@ -30,6 +30,7 @@ export function ConversationItem({
     renameConversation,
     deleteConversation,
     moveConversation,
+    toggleConversationFavorite,
   } = useStore()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(conversation.title)
@@ -82,10 +83,16 @@ export function ConversationItem({
       <button
         type="button"
         onClick={() => selectConversation(conversation.id)}
-        className="min-w-0 flex-1 truncate rounded-lg py-2 pl-2.5 pr-8 text-left text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-2 pl-2.5 pr-8 text-left text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
         title={conversation.title}
       >
-        {conversation.title}
+        {conversation.favorite && (
+          <Star
+            className="h-3 w-3 shrink-0 fill-accent text-accent"
+            aria-label="Favorita"
+          />
+        )}
+        <span className="truncate">{conversation.title}</span>
       </button>
 
       <DropdownMenu>
@@ -98,6 +105,10 @@ export function ConversationItem({
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => toggleConversationFavorite(conversation.id)}>
+            <Star aria-hidden="true" />
+            {conversation.favorite ? "Remover dos favoritos" : "Favoritar"}
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={startRename}>
             <Pencil aria-hidden="true" />
             Renomear

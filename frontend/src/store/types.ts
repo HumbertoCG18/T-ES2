@@ -39,6 +39,8 @@ export interface Conversation {
   messages: ChatMessage[]
   createdAt: number
   updatedAt: number
+  /** Conversa fixada nos Favoritos da sidebar. */
+  favorite?: boolean
 }
 
 /**
@@ -62,7 +64,12 @@ export interface Project {
   /** Arquivos de conhecimento. TODO: ligar ao retrieval-service (RAG). */
   files: ProjectFile[]
   createdAt: number
+  /** Projeto fixado nos Favoritos da sidebar. */
+  favorite?: boolean
 }
+
+/** Limite de conhecimento por projeto (soma do tamanho dos arquivos), p/ a barra de capacidade. */
+export const PROJECT_KNOWLEDGE_LIMIT = 1_000_000 // ~1 MB
 
 /** Preferência de tema; "system" segue prefers-color-scheme. */
 export type ThemePref = "light" | "dark" | "system"

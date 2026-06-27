@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Menu, PanelLeft } from "lucide-react"
+import { FolderClosed, Menu, PanelLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tooltip } from "@/components/ui/tooltip"
@@ -7,7 +7,10 @@ import { useStore } from "@/store/store"
 import { ModelSelector } from "./ModelSelector"
 
 function EditableTitle() {
-  const { activeConversation, renameConversation } = useStore()
+  const { activeConversation, renameConversation, state, openProject } = useStore()
+  const project = activeConversation?.projectId
+    ? state.projects.find((p) => p.id === activeConversation.projectId)
+    : null
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -51,17 +54,35 @@ function EditableTitle() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => {
-        setDraft(activeConversation.title)
-        setEditing(true)
-      }}
-      className="truncate rounded-md px-2 py-1 text-sm font-medium text-foreground outline-none transition-colors hover:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-accent"
-      title="Renomear conversa"
-    >
-      {activeConversation.title}
-    </button>
+    <div className="flex min-w-0 items-center">
+      {project && (
+        <>
+          <button
+            type="button"
+            onClick={() => openProject(project.id)}
+            className="flex max-w-[40%] shrink-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+            title={`Projeto: ${project.name}`}
+          >
+            <FolderClosed className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{project.name}</span>
+          </button>
+          <span className="px-0.5 text-muted-foreground/50" aria-hidden="true">
+            /
+          </span>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={() => {
+          setDraft(activeConversation.title)
+          setEditing(true)
+        }}
+        className="truncate rounded-md px-2 py-1 text-sm font-medium text-foreground outline-none transition-colors hover:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-accent"
+        title="Renomear conversa"
+      >
+        {activeConversation.title}
+      </button>
+    </div>
   )
 }
 

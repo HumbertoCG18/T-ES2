@@ -57,7 +57,10 @@ export function AssistantMessage({
           {message.content}
         </p>
       ) : (
-        <Markdown content={message.content} />
+        // data-quotable: habilita "Citar" ao selecionar trecho desta resposta.
+        <div data-quotable>
+          <Markdown content={message.content} />
+        </div>
       )}
 
       {message.trace && message.trace.length > 0 && (

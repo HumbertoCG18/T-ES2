@@ -63,6 +63,8 @@ type Action =
   | { type: "RENAME_CONVERSATION"; id: string; title: string }
   | { type: "DELETE_CONVERSATION"; id: string }
   | { type: "MOVE_CONVERSATION"; id: string; projectId: string | null }
+  | { type: "TOGGLE_CONVERSATION_FAVORITE"; id: string }
+  | { type: "TOGGLE_PROJECT_FAVORITE"; id: string }
   | { type: "CREATE_PROJECT"; project: Project }
   | {
       type: "UPDATE_PROJECT"
@@ -85,6 +87,22 @@ function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "SET_VIEW":
       return { ...state, view: action.view }
+
+    case "TOGGLE_CONVERSATION_FAVORITE":
+      return {
+        ...state,
+        conversations: state.conversations.map((c) =>
+          c.id === action.id ? { ...c, favorite: !c.favorite } : c,
+        ),
+      }
+
+    case "TOGGLE_PROJECT_FAVORITE":
+      return {
+        ...state,
+        projects: state.projects.map((p) =>
+          p.id === action.id ? { ...p, favorite: !p.favorite } : p,
+        ),
+      }
 
     case "CREATE_CONVERSATION":
       return {
@@ -333,6 +351,8 @@ interface StoreValue {
   selectConversation: (id: string) => void
   openProject: (id: string) => void
   showCapabilities: () => void
+  toggleConversationFavorite: (id: string) => void
+  toggleProjectFavorite: (id: string) => void
   sendMessage: (text: string, attachments?: ComposerAttachment[]) => void
   editAndResend: (convId: string, messageIndex: number, newContent: string) => void
   regenerateLast: (convId: string) => void
@@ -421,6 +441,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const showCapabilities = useCallback(() => {
     dispatch({ type: "SET_VIEW", view: { type: "capabilities" } })
+  }, [])
+
+  const toggleConversationFavorite = useCallback((id: string) => {
+    dispatch({ type: "TOGGLE_CONVERSATION_FAVORITE", id })
+  }, [])
+
+  const toggleProjectFavorite = useCallback((id: string) => {
+    dispatch({ type: "TOGGLE_PROJECT_FAVORITE", id })
   }, [])
 
   /**
@@ -665,6 +693,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       selectConversation,
       openProject,
       showCapabilities,
+      toggleConversationFavorite,
+      toggleProjectFavorite,
       sendMessage,
       editAndResend,
       regenerateLast,
@@ -691,6 +721,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       selectConversation,
       openProject,
       showCapabilities,
+      toggleConversationFavorite,
+      toggleProjectFavorite,
       sendMessage,
       editAndResend,
       regenerateLast,

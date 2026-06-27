@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { ChatMessage } from "@/store/types"
 import { Message } from "./Message"
+import { SelectionQuote } from "./SelectionQuote"
 
 export function MessageList({
   messages,
@@ -45,6 +46,7 @@ export function MessageList({
           />
         ))}
       </div>
+      <SelectionQuote />
     </ScrollArea>
   )
 }

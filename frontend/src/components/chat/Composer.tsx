@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip } from "@/components/ui/tooltip"
 import { formatBytes, readComposerAttachments } from "@/lib/files"
+import { quoteBus } from "@/lib/quoteBus"
 import type { ComposerAttachment } from "@/store/types"
 
 interface ComposerProps {
@@ -38,6 +39,18 @@ export function Composer({ onSend, disabled, autoFocus }: ComposerProps) {
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus()
   }, [autoFocus])
+
+  // "Citar trecho": insere o texto selecionado como citação Markdown e foca o composer.
+  useEffect(() => {
+    return quoteBus.subscribe((quote) => {
+      const block = quote
+        .split("\n")
+        .map((line) => `> ${line}`)
+        .join("\n")
+      setValue((v) => (v.trim() ? `${v}\n\n` : "") + `${block}\n\n`)
+      textareaRef.current?.focus()
+    })
+  }, [])
 
   const handleFiles = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : []

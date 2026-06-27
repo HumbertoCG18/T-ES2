@@ -16,8 +16,9 @@ import type { LucideIcon } from "lucide-react"
 
 import { formatBytes, readProjectFiles, wasTruncated } from "@/lib/files"
 import { cn } from "@/lib/utils"
+import { Progress } from "@/components/ui/progress"
 import { useStore } from "@/store/store"
-import type { Project, ProjectFile } from "@/store/types"
+import { PROJECT_KNOWLEDGE_LIMIT, type Project, type ProjectFile } from "@/store/types"
 
 function iconFor(file: ProjectFile): LucideIcon {
   if (file.type.startsWith("image/")) return FileImage
@@ -76,6 +77,24 @@ export function ProjectFiles({ project }: { project: Project }) {
         Documentos de referência do projeto. Texto é indexado localmente;
         binários guardam apenas os metadados.
       </p>
+
+      {project.files.length > 0 &&
+        (() => {
+          const used = project.files.reduce((s, f) => s + f.size, 0)
+          const pct = (used / PROJECT_KNOWLEDGE_LIMIT) * 100
+          const warn = pct >= 85
+          return (
+            <div className="mb-3">
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Capacidade do conhecimento</span>
+                <span className={cn("tabular-nums", warn ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+                  {Math.round(pct)}% · {formatBytes(used)} / {formatBytes(PROJECT_KNOWLEDGE_LIMIT)}
+                </span>
+              </div>
+              <Progress value={pct} tone={warn ? "warning" : "accent"} />
+            </div>
+          )
+        })()}
 
       <input
         ref={fileInputRef}

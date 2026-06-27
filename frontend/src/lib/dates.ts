@@ -1,4 +1,4 @@
-import type { Conversation } from "@/store/types"
+import type { Conversation, Project } from "@/store/types"
 
 function startOfDay(ts: number): number {
   const d = new Date(ts)
@@ -39,4 +39,42 @@ export function groupConversationsByDate(
     { label: "Ontem", items: ontem },
     { label: "Anteriores", items: anteriores },
   ].filter((g) => g.items.length > 0)
+}
+
+export interface ProjectGroup {
+  projectId: string
+  label: string
+  items: Conversation[]
+}
+
+/**
+ * Separa conversas em grupos por projeto (cada grupo ordenado por recência, e os grupos
+ * ordenados pela atividade mais recente) e uma lista "avulsa" (sem projeto). Espelha a
+ * organização da sidebar do claude.ai (projeto → conversas aninhadas).
+ */
+export function groupConversationsByProject(
+  conversations: Conversation[],
+  projects: Project[],
+): { projectGroups: ProjectGroup[]; loose: Conversation[] } {
+  const byId = new Map(projects.map((p) => [p.id, p]))
+  const grouped = new Map<string, Conversation[]>()
+  const loose: Conversation[] = []
+
+  const sorted = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt)
+  for (const c of sorted) {
+    if (c.projectId && byId.has(c.projectId)) {
+      const arr = grouped.get(c.projectId) ?? []
+      arr.push(c)
+      grouped.set(c.projectId, arr)
+    } else {
+      loose.push(c)
+    }
+  }
+
+  const projectGroups: ProjectGroup[] = [...grouped.entries()].map(
+    ([projectId, items]) => ({ projectId, label: byId.get(projectId)!.name, items }),
+  )
+  projectGroups.sort((a, b) => b.items[0].updatedAt - a.items[0].updatedAt)
+
+  return { projectGroups, loose }
 }
