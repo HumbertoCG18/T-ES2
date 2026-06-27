@@ -50,6 +50,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
+        <!-- Mensageria (Entrega 4): produtor de ingestao (document.ingest) e telemetria. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
         <!-- Circuit breaker via Spring Cloud CircuitBreaker (Resilience4j), alinhado ao BOM
              spring-cloud-dependencies. API programatica CircuitBreakerFactory; evita o skew de
              versao do resilience4j-spring-boot3 com o release train. -->

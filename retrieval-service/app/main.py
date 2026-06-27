@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
 
-from app import chroma, chunking, embeddings, eureka
+from app import chroma, consumer, embeddings, eureka, rag_index
 from app.config import settings
 from app.models import (
     Hit,
@@ -23,7 +23,9 @@ from app.models import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await eureka.register()
+    await consumer.start()       # consumer da fila document.ingest (Entrega 4)
     yield
+    await consumer.stop()
     await eureka.deregister()
 
 
@@ -37,24 +39,11 @@ def health() -> dict:
 
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest(req: IngestRequest) -> IngestResponse:
-    chunks = chunking.chunk_text(req.text, settings.chunk_size, settings.chunk_overlap)
-    if not chunks:
+    # Ingestão síncrona direta; a fila document.ingest usa a mesma lógica (rag_index).
+    n = await rag_index.index_document(req.docId, req.text, req.projectId, req.metadata)
+    if n == 0:
         raise HTTPException(status_code=400, detail="texto vazio")
-
-    vectors = await embeddings.embed_texts(chunks)
-
-    ids = [f"{req.docId}:{i}" for i in range(len(chunks))]
-    metadatas = []
-    for i in range(len(chunks)):
-        md: dict = dict(req.metadata or {})
-        md["doc_id"] = req.docId
-        md["chunk_index"] = i
-        if req.projectId is not None:
-            md["project_id"] = req.projectId
-        metadatas.append(md)
-
-    await run_in_threadpool(chroma.upsert, ids, chunks, vectors, metadatas)
-    return IngestResponse(docId=req.docId, chunksIndexed=len(chunks))
+    return IngestResponse(docId=req.docId, chunksIndexed=n)
 
 
 @app.post("/search", response_model=SearchResponse)

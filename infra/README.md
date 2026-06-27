@@ -19,8 +19,10 @@ docker compose -f infra/docker-compose.infra.yaml down -v    # para E apaga os d
 | redis    | 6379  | `redis:7-alpine`        | `redis-data`    | curto prazo      |
 | postgres | 5432  | `postgres:16-alpine`    | `postgres-data` | longo prazo (db `memory`) |
 | chromadb | 8000  | `chromadb/chroma:1.5.3` | `chroma-data`   | vetores (RAG)    |
+| rabbitmq | 5672 / 15672 | `rabbitmq:3-management` | `rabbitmq-data` | mensageria (Entrega 4) |
 
 Postgres: db `memory`, user/pass `postgres`/`postgres`.
+RabbitMQ: AMQP na 5672, UI em http://localhost:15672 (guest/guest em dev).
 
 ## Equivalentes em `docker run` (sem compose)
 
@@ -40,6 +42,11 @@ docker run -d --name postgres -p 5432:5432 \
 docker run -d --name chromadb -p 8000:8000 \
   -v chroma-data:/data \
   chromadb/chroma:1.5.3
+
+# RabbitMQ 3 + management (mensageria, Entrega 4)
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 \
+  -v rabbitmq-data:/var/lib/rabbitmq \
+  rabbitmq:3-management
 ```
 
 ## Smoke checks
@@ -48,6 +55,7 @@ docker run -d --name chromadb -p 8000:8000 \
 docker exec -it redis redis-cli ping                 # -> PONG
 docker exec -it postgres pg_isready -U postgres -d memory
 curl http://localhost:8000/api/v2/heartbeat          # -> {"nanosecond heartbeat": ...}
+docker exec -it rabbitmq rabbitmq-diagnostics -q ping # -> Ping succeeded
 ```
 
 Inspeção dos dois níveis de memória (após exercitar o `/chat`):

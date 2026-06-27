@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CheckCircle, ChevronRight, Sparkles, Wrench } from "lucide-react"
+import { Brain, CheckCircle, ChevronRight, Sparkles, Wrench } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { parseTrace, type TraceStep } from "@/lib/trace"
@@ -93,6 +93,9 @@ export function Trace({ trace }: { trace: string[] }) {
   const steps = parseTrace(trace)
   if (steps.length === 0) return null
 
+  // Sem ferramenta (so raciocinio/resposta direta) => "Pensamento"; com acao => "Como cheguei la".
+  const hasAction = steps.some((step) => step.kind === "action")
+
   return (
     <div className="mt-3 max-w-prose">
       <button
@@ -108,17 +111,26 @@ export function Trace({ trace }: { trace: string[] }) {
           )}
           aria-hidden="true"
         />
-        <Sparkles className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-        Como cheguei lá
-        <span className="text-muted-foreground/70">
-          · {steps.length} {steps.length === 1 ? "passo" : "passos"}
-        </span>
+        {hasAction ? (
+          <>
+            <Sparkles className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+            Como cheguei lá
+            <span className="text-muted-foreground/70">
+              · {steps.length} {steps.length === 1 ? "passo" : "passos"}
+            </span>
+          </>
+        ) : (
+          <>
+            <Brain className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+            Pensamento
+          </>
+        )}
       </button>
 
       {open && (
         <div className="mt-2 rounded-xl border border-border bg-foreground/[0.02] p-4">
           <p className="mb-3 text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground/80">
-            Raciocínio → ação → observação
+            {hasAction ? "Raciocínio → ação → observação" : "Contexto e raciocínio"}
           </p>
           <ol className="relative">
             {steps.map((step, i) => (

@@ -35,7 +35,19 @@ decidir **como** montar o contexto do LLM e **como** isolar falhas dos serviços
 - Falha de memória/RAG degrada para o comportamento da Entrega 2 (chat stateless), sem 5xx.
 
 **Contras / trade-offs**
-- `topK` é sempre injetado (não há limiar de score): o modelo recebe o vizinho mais próximo mesmo
-  para perguntas fora do corpus. Mitigado pela instrução "use se for relevante"; limiar fica para depois.
-- Modelo local (llama3.1 8B) tem qualidade variável; o *grounding* depende do prompt — registrado.
 - O time limiter do breaker de retrieval (5s) cobre o embedding; corpora/modelos maiores pediriam revisão.
+
+## Atualização (2026-06-27) — qualidade do chat com modelo local
+
+O llama3.1 8B alucinava tool-calls (chamava o `calculator` até para "Teste") e o RAG injetava
+`topK` trechos mesmo em mensagens irrelevantes. Mitigações implementadas:
+- **Limiar de score no RAG** (`retrieval.min-score`, default 0.3): só injeta trechos com score de
+  cosseno acima do limiar; "Teste" deixa de recuperar contexto sem sentido. (Substitui o "limiar
+  fica para depois" do trade-off original.)
+- **Gating de ferramenta:** o `calculator` só é oferecido ao LLM quando a mensagem contém dígito
+  (`needsCalculator`). Sem aritmética, a ferramenta nem é enviada → o modelo não tem como alucinar
+  a chamada. Resolve o problema na raiz para um modelo local fraco.
+- **Temperatura baixa** (`llm.temperature`, default 0.0) + prompt conversacional explícito ("na
+  maioria das mensagens, apenas converse, sem ferramentas").
+- Verificado: "Teste" → resposta conversacional em 1 iteração (sem calculator/rag); aritmética usa
+  o calculator; pergunta sobre o doc volta ancorada (Andromeda) sem passo de ferramenta espúrio.

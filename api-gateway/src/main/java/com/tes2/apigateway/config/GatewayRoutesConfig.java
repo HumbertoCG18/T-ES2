@@ -12,6 +12,8 @@ public class GatewayRoutesConfig {
     RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("agent-service", r -> r.path("/chat/**").uri("lb://agent-service"))
+                // Ingestao assincrona de documentos (Entrega 4) -> produtor no agent-service.
+                .route("agent-documents", r -> r.path("/documents/**").uri("lb://agent-service"))
                 .build();
     }
 }

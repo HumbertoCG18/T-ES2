@@ -22,6 +22,14 @@ class Settings:
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "100"))
     default_top_k: int = int(os.getenv("DEFAULT_TOP_K", "4"))
 
+    # --- Mensageria (Entrega 4): consumer de ingestao assincrona ---
+    rabbitmq_host: str = os.getenv("RABBITMQ_HOST", "localhost")
+    rabbitmq_port: int = int(os.getenv("RABBITMQ_PORT", "5672"))
+    rabbitmq_user: str = os.getenv("RABBITMQ_USERNAME", "guest")
+    rabbitmq_password: str = os.getenv("RABBITMQ_PASSWORD", "guest")
+    ingest_queue: str = os.getenv("INGEST_QUEUE", "document.ingest")
+    messaging_enabled: bool = os.getenv("MESSAGING_ENABLED", "true").lower() == "true"
+
     # --- Identidade / discovery ---
     service_name: str = os.getenv("SERVICE_NAME", "retrieval-service")
     service_port: int = int(os.getenv("SERVICE_PORT", "8083"))

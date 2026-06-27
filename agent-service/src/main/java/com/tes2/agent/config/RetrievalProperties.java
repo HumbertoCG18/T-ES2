@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param topK    nº de trechos recuperados por busca (ver R3)
  */
 @ConfigurationProperties(prefix = "retrieval")
-public record RetrievalProperties(String baseUrl, int topK) {
+public record RetrievalProperties(String baseUrl, int topK, Double minScore) {
 
     public RetrievalProperties {
         if (baseUrl == null || baseUrl.isBlank()) {
@@ -19,6 +19,11 @@ public record RetrievalProperties(String baseUrl, int topK) {
         }
         if (topK <= 0) {
             topK = 4;
+        }
+        // Limiar de relevancia (cosseno): so injeta contexto RAG acima disso. Sem isso, o topK
+        // injeta trechos mesmo para mensagens irrelevantes ("Teste" -> 4 trechos sem sentido).
+        if (minScore == null) {
+            minScore = 0.3;
         }
     }
 }

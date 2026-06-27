@@ -109,6 +109,40 @@ sem `rag:` no trace e sem 5xx. Idem parando o Redis → histórico vem do Postgr
 > **Fallback de discovery do retrieval (R1/ADR 0008):** se o `py-eureka-client` falhar, suba o
 > retrieval com `EUREKA_ENABLED=false` e aponte o agent-service por URL fixa: `RETRIEVAL_URL=http://localhost:8083`.
 
+## Entrega 4 — Mensageria (RabbitMQ)
+
+A infra já sobe o **RabbitMQ** (`docker compose -f infra/docker-compose.infra.yaml up -d`).
+UI: `http://localhost:15672` (guest/guest). Os serviços (agent/memory/retrieval) conectam no
+broker no startup; sem broker, degradam graciosamente.
+
+**1) Ingestão assíncrona (producer Spring → fila → consumer Python):**
+
+```
+curl http://localhost:8080/documents/ingest -H "Content-Type: application/json" ^
+  -d "{\"docId\":\"async1\",\"projectId\":\"p1\",\"text\":\"Documento ingerido pela fila RabbitMQ.\"}"
+# -> 202 {"docId":"async1","status":"queued"}; o retrieval-service loga "Indexado via fila"; depois:
+curl http://localhost:8083/search -H "Content-Type: application/json" -d "{\"query\":\"fila RabbitMQ\",\"topK\":3}"
+```
+
+**2) Telemetria (não-bloqueante, persistida no Postgres):**
+
+```
+curl http://localhost:8080/chat -H "Content-Type: application/json" -d "{\"conversationId\":\"c-tel\",\"message\":\"Quanto e 7*6?\"}"
+docker exec -it postgres psql -U postgres -d memory -c "SELECT conversation_id, latency_ms, iterations, rag_hits, tools_used FROM telemetry_event ORDER BY id DESC LIMIT 5;"
+# ou: curl http://localhost:8082/telemetry
+```
+
+**3) Desacoplamento (prova):** parar o `retrieval-service`, publicar 2 docs e ver a fila acumular;
+subir de novo → a fila drena e os docs ficam buscáveis.
+
+```
+docker exec rabbitmq rabbitmqctl list_queues name messages consumers   # autoritativo (mgmt API tem lag ~5s)
+# document.ingest -> messages=2 consumers=0  (consumer fora)  =>  messages=0 consumers=1 (apos voltar)
+```
+
+**4) Broker fora (resiliência):** `docker stop rabbitmq` → `/chat` ainda responde (telemetria
+best-effort) e `/documents/ingest` responde **503**. `docker start rabbitmq` → consumers reconectam.
+
 ## Troubleshooting
 
 | Sintoma | Causa provável | Ação |
@@ -121,6 +155,10 @@ sem `rag:` no trace e sem 5xx. Idem parando o Redis → histórico vem do Postgr
 | `chromadb` aparece "unhealthy"/sem health | imagem mínima (sem curl) — não há healthcheck | normal; checar do host: `curl .../api/v2/heartbeat` |
 | RAG não ancora / alucina ferramenta | modelo local 8B é variável | já mitigado no system prompt; reexecutar; `embeddinggemma` deve estar puxado |
 | `MEMORY/RETRIEVAL-SERVICE` ausentes no Eureka | infra/serviço não subiu ou registro pendente | aguardar ~30s; conferir logs; checar `EUREKA_URL` |
+| `/documents/ingest` responde 503 | RabbitMQ fora | subir a infra; `docker start rabbitmq` |
+| Doc publicado não aparece no `/search` | consumer do retrieval fora ou ainda processando | conferir `rabbitmqctl list_queues` (consumers≥1); ver log "Indexado via fila" |
+| `telemetry_event` sem linhas | broker fora na hora do `/chat` (best-effort) ou consumer do memory fora | telemetria é best-effort; checar `telemetry.events consumers=1` |
+| Contagem de fila diverge na UI 15672 | stats do management API têm lag (~5s) | usar `rabbitmqctl list_queues` (autoritativo) |
 
 ## Comandos úteis
 

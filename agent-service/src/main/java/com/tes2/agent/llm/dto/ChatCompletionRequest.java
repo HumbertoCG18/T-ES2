@@ -8,6 +8,7 @@ import java.util.List;
 public record ChatCompletionRequest(
         String model,
         List<ChatMessage> messages,
-        List<ToolSpec> tools
+        List<ToolSpec> tools,
+        Double temperature
 ) {
 }

@@ -36,9 +36,12 @@ frontend, `curl` ou Postman.
   Gateway é o único ponto de entrada externo.
 - **Service discovery:** todos registram no `name-server` (Eureka); resolução por **nome
   lógico**, nunca host/porta fixos.
-- **Assíncrono (RabbitMQ):** desacopla produtor/consumidor. Usos previstos: telemetria do
-  `agent-service` (latência, ferramentas, chamadas ao LLM); ingestão de documentos para o
-  `retrieval-service`; notificações entre agentes.
+- **Assíncrono (RabbitMQ, Entrega 4 ✅):** desacopla produtor/consumidor. Implementados **dois
+  fluxos**: (1) **ingestão de documentos** — `agent-service` publica em `document.ingest`
+  (`POST /documents/ingest` → 202); `retrieval-service` (consumer aio-pika) consome e indexa no
+  ChromaDB; (2) **telemetria** — `agent-service` publica em `telemetry.events` ao fim de cada
+  `/chat` (sem bloquear); `memory-service` (`@RabbitListener`) persiste em `telemetry_event`.
+  Topologia: default exchange + filas duráveis nomeadas, JSON. Notificações entre agentes ficam fora.
 - **Memória + RAG (síncrono, Entrega 3):** o `agent-service` resolve `lb://memory-service` e
   `lb://retrieval-service` via Eureka. No `/chat`: carrega o histórico (memory), busca trechos
   (retrieval, que embeda via `llm-gateway` e consulta o ChromaDB), injeta o contexto como `system`
@@ -67,8 +70,10 @@ frontend, `curl` ou Postman.
    [ Ollama ]  <----------------------------------------------------------+
    (LLM local: chat + embeddinggemma)
 
+  Async (RabbitMQ, Entrega 4): agent--[document.ingest]-->retrieval (indexa);
+                               agent--[telemetry.events]-->memory (persiste telemetry_event).
   Resiliência: circuit breaker agent→llm-gateway, agent→memory, agent→retrieval (Resilience4j).
-  Futuro: RabbitMQ (async, Entrega 4) · OpenTelemetry + Jaeger + Prometheus (Entrega 6).
+  Futuro: OpenTelemetry + Jaeger + Prometheus (Entrega 6).
 ```
 
 ## Estado atual (Entregas 1–3)
@@ -84,6 +89,12 @@ frontend, `curl` ou Postman.
   persiste o turno. Verificado ponta-a-ponta: memória nos dois níveis, RAG ancorado, discovery
   `lb://`, resiliência (memory/retrieval fora → sem 5xx) e back-compat (`/chat` sem `conversationId`).
   Decisões em ADR 0007/0008/0009. `tool-registry` remoto adiado (Entrega 3+).
+
+- **Entrega 4 — Mensageria:** RabbitMQ (container de infra). Dois fluxos assíncronos verificados ao
+  vivo: ingestão de documentos (`document.ingest`: agent-service → retrieval-service, polyglot) e
+  telemetria (`telemetry.events`: agent-service → memory-service → `telemetry_event` no Postgres).
+  Desacoplamento provado (fila acumula com consumer fora e drena na volta); broker fora →
+  `/chat` segue e `/documents/ingest` responde 503. Decisão em ADR 0010.
 
 Ainda sem containers de serviço (só infra em containers): cada serviço roda como processo local;
 Dockerfiles + `docker-compose.yaml` completo chegam na Entrega 5.

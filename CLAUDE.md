@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado do repositório
 
-**Entregas 1–3 concluídas (verificadas ao vivo).** Serviços: `agent-service/` (Spring Boot,
-ciclo agêntico + Eureka client + circuit breaker + memória/RAG no `/chat`), `llm-gateway/`
+**Entregas 1–4 concluídas (verificadas ao vivo).** Serviços: `agent-service/` (Spring Boot,
+ciclo agêntico + Eureka client + circuit breaker + memória/RAG no `/chat` + produtor RabbitMQ),
+`llm-gateway/`
 (LiteLLM/Ollama, com modelo lógico `embeddings`), `name-server/` (Eureka Server, 8761),
 `api-gateway/` (Spring Cloud Gateway, 8080), `memory-service/` (Spring Boot, Redis curto +
 PostgreSQL longo, 8082), `retrieval-service/` (FastAPI + ChromaDB, embeddings via gateway, 8083).
@@ -15,7 +16,7 @@ com LLM real e `conversationId`; em expansão (ver `docs/plan/B-frontend.md`). F
 (adiado, Entrega 3+; `ToolRegistry` in-process atende por ora) e Entregas 4–8. **Sempre conferir
 `docs/plan/README.md`** para o estado atual e o que falta. Arquitetura-alvo na spec
 (`docs/t1_2026_1.pdf`). ADRs novos: 0007 (memória 2 níveis), 0008 (retrieval Python + discovery),
-0009 (injeção RAG).
+0009 (injeção RAG), 0010 (mensageria RabbitMQ: ingestão async + telemetria).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +
@@ -110,9 +111,14 @@ projeto isolado, com seu próprio build, Dockerfile e ciclo de deploy:
   - Endpoints: `POST /ingest`, `POST /search`, `DELETE /documents/{docId}`, `GET /health`.
   - Registra-se no Eureka como `RETRIEVAL-SERVICE` (`py-eureka-client`); `EUREKA_ENABLED=false`
     desliga e usa-se URL fixa no agent-service (`RETRIEVAL_URL`). Embeddings: `embeddinggemma:300m` (768d).
-- **Infra da Entrega 3** (Redis 6379 / Postgres 5432 db `memory` / ChromaDB 8000):
+- **Infra (Entregas 3–4)** (Redis 6379 / Postgres 5432 db `memory` / ChromaDB 8000 / RabbitMQ 5672+15672):
   - `docker compose -f infra/docker-compose.infra.yaml up -d` (down `-v` apaga dados).
   - ChromaDB sem healthcheck (imagem mínima); readiness: `curl http://localhost:8000/api/v2/heartbeat`.
+  - RabbitMQ UI: `http://localhost:15672` (guest/guest). Contagem de fila autoritativa:
+    `docker exec rabbitmq rabbitmqctl list_queues name messages consumers` (mgmt API tem lag ~5s).
+- **Mensageria (Entrega 4):** ingestão assíncrona `POST /documents/ingest` (via gateway 8080 → 202 →
+  fila `document.ingest` → retrieval-service indexa); telemetria por `/chat` (fila `telemetry.events`
+  → memory-service persiste em `telemetry_event`; ver `GET /telemetry` na 8082). Env `RABBITMQ_*`.
 - **llm-gateway** (porta 4000), de dentro de `llm-gateway/`:
   - `OLLAMA_BASE_URL` no ambiente, depois `uv run litellm --config config.yaml --port 4000`
   - PowerShell: `$env:OLLAMA_BASE_URL="http://localhost:11434"`

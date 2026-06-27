@@ -2,6 +2,13 @@ spring:
   application:
     name: agent-service
 
+  # Mensageria (Entrega 4). Produtor de document.ingest e telemetry.events.
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
 server:
   port: 8081
 
@@ -11,6 +18,8 @@ llm:
   base-url: ${LLM_BASE_URL:http://localhost:4000}
   model: ${LLM_MODEL:chat}
   max-iterations: ${LLM_MAX_ITERATIONS:5}
+  # Baixa por padrao: reduz alucinacao de tool-calls do modelo local (ex.: calculator p/ "Teste").
+  temperature: ${LLM_TEMPERATURE:0.0}
 
 # memory-service: discovery por padrao (lb://). MEMORY_URL pode apontar p/ http://host:porta.
 memory:
@@ -21,6 +30,8 @@ memory:
 retrieval:
   base-url: ${RETRIEVAL_URL:lb://retrieval-service}
   top-k: ${RETRIEVAL_TOP_K:4}
+  # Limiar de relevancia (cosseno): so injeta contexto RAG com score >= este valor.
+  min-score: ${RETRIEVAL_MIN_SCORE:0.3}
 
 eureka:
   client:

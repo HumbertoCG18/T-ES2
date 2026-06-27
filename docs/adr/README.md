@@ -20,3 +20,4 @@ criar um novo ADR que substitua o anterior.
 | [0007](0007-memoria-redis-postgres.md) | Memória em dois níveis: Redis (curto) + PostgreSQL (longo), write-through | Aceito |
 | [0008](0008-retrieval-python-discovery.md) | retrieval-service em Python + discovery via py-eureka-client (fallback URL fixa) | Aceito |
 | [0009](0009-injecao-contexto-rag.md) | Injeção de contexto RAG como system message + degradação graciosa | Aceito |
+| [0010](0010-mensageria-rabbitmq.md) | Mensageria RabbitMQ: ingestão assíncrona (polyglot) + telemetria | Aceito |

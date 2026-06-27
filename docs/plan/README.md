@@ -49,7 +49,7 @@ uso real dos arquivos/memória de projeto do frontend. Depois 4–8.
 | 1 | Fundação — agent-service + llm-gateway (REST) | — | ✅ Concluída |
 | 2 | Infraestrutura — Eureka + api-gateway + circuit breaker | [`02-infraestrutura.md`](02-infraestrutura.md) | ✅ Concluída (verificada ao vivo) |
 | 3 | Memória e RAG — memory-service + retrieval-service | [`03-memoria-rag.md`](03-memoria-rag.md) | ✅ Concluída (verificada ao vivo: memória 2 níveis, RAG ancorado 3/3, discovery `lb://`, resiliência, back-compat; frontend passa `conversationId`; ADRs 0007/0008/0009) |
-| 4 | Mensageria — RabbitMQ (fluxos assíncronos) | `04-mensageria.md` | ⬜ A planejar |
+| 4 | Mensageria — RabbitMQ (fluxos assíncronos) | [`04-mensageria.md`](04-mensageria.md) | ✅ Concluída (verificada ao vivo: ingestão async polyglot + telemetria persistida; desacoplamento e resiliência provados; ADR 0010) |
 | 5 | Containerização — Dockerfiles + docker-compose | `05-containerizacao.md` | ⬜ A planejar |
 | 6 | Observabilidade — OpenTelemetry + Jaeger + CI | `06-observabilidade.md` | ⬜ A planejar |
 | 7 | Produção em nuvem — manifests + descrição K8s | `07-nuvem-k8s.md` | ⬜ A planejar |

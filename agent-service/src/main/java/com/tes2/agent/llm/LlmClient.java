@@ -40,7 +40,8 @@ public class LlmClient {
     }
 
     private ChatMessage doComplete(List<ChatMessage> messages, List<ToolSpec> tools) {
-        ChatCompletionRequest request = new ChatCompletionRequest(props.model(), messages, tools);
+        ChatCompletionRequest request =
+                new ChatCompletionRequest(props.model(), messages, tools, props.temperature());
         ChatCompletionResponse response = client.post()
                 .uri("/v1/chat/completions")
                 .body(request)

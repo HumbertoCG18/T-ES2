@@ -6,11 +6,12 @@ Documento de transferência: leia isto + [`plan/README.md`](plan/README.md) ao r
 
 ## TL;DR — onde estamos
 
-Entregas **1, 2 e 3 concluídas e verificadas ao vivo**. **Frontend bônus** (app shell completo
+Entregas **1, 2, 3 e 4 concluídas e verificadas ao vivo**. **Frontend bônus** (app shell completo
 estilo claude.ai) funcionando ponta-a-ponta com LLM real + tool calling + `conversationId`.
-**Entrega 3 (Memória e RAG) IMPLEMENTADA** (memory-service + retrieval-service + integração no
-agent-service), verificada ponta-a-ponta — porém **ainda não commitada** (tudo no working tree do
-branch `dev-HCG`). **Próximo passo: commitar a Entrega 3 e iniciar a Entrega 4 (RabbitMQ)**.
+Entrega 3 (Memória e RAG) **commitada** (`e126977`). **Entrega 4 (Mensageria RabbitMQ) IMPLEMENTADA**
+(ingestão assíncrona + telemetria), verificada ponta-a-ponta — **a commitar** (working tree do branch
+`dev-HCG`). **Próximo passo: commitar a Entrega 4 e iniciar a Entrega 5 (Containerização: Dockerfiles
++ `docker-compose.yaml` completo)**.
 
 ## Pronto (commits no `dev-HCG`)
 
@@ -36,6 +37,7 @@ Working tree limpo. Sem push remoto (branch local).
 | `memory-service` | 8082 | ✅ Entrega 3 (Redis curto + Postgres longo) |
 | `retrieval-service` | 8083 | ✅ Entrega 3 (FastAPI + ChromaDB + Eureka) |
 | Redis / PostgreSQL / ChromaDB | 6379 / 5432 / 8000 | ✅ Entrega 3 (`infra/docker-compose.infra.yaml`) |
+| RabbitMQ (AMQP / UI) | 5672 / 15672 | ✅ Entrega 4 (mesma infra; guest/guest) |
 | Ollama | 11434 | infra local |
 
 > Processos de dev de sessões anteriores podem ainda estar rodando nessas portas — matar se
@@ -70,10 +72,26 @@ Plano e critérios: [`plan/03-memoria-rag.md`](plan/03-memoria-rag.md). Entregue
   (memory/retrieval fora → sem 5xx), back-compat. `mvn package` verde nos 2 módulos Spring.
 - **ADRs:** 0007 (memória 2 níveis), 0008 (retrieval Python + discovery/fallback), 0009 (injeção RAG).
 
-**Próximo passo:** (1) **commitar a Entrega 3**; (2) iniciar **Entrega 4 — Mensageria (RabbitMQ)**:
-tornar a ingestão de documentos assíncrona e/ou publicar telemetria do `agent-service`.
-`tool-registry` remoto segue adiado (Entrega 3+). Gotcha recorrente: matar instâncias antigas nas
-portas 8081/8082/8083 antes de subir (sessões anteriores deixam processos vivos).
+Entrega 3 **commitada** em `e126977`. Gotcha recorrente: matar instâncias antigas nas portas
+8080/8081/8082/8083 antes de subir (sessões anteriores deixam processos vivos).
+
+## Entrega 4 (Mensageria RabbitMQ) — CONCLUÍDA (working tree, a commitar)
+
+Plano e critérios: [`plan/04-mensageria.md`](plan/04-mensageria.md). Dois fluxos assíncronos,
+verificados ao vivo:
+- **Ingestão assíncrona (polyglot):** `agent-service` `POST /documents/ingest` (via gateway, `Path=/documents/**`)
+  publica em `document.ingest` → **202**; `retrieval-service` (consumer **aio-pika** no lifespan) consome
+  e indexa no ChromaDB (reusa `index_document()`). `/ingest` síncrono continua.
+- **Telemetria (não-bloqueante):** `agent-service` publica em `telemetry.events` ao fim do `/chat`
+  (best-effort); `memory-service` (`@RabbitListener`) persiste `telemetry_event` no Postgres
+  (`GET /telemetry`). Converter Jackson com ObjectMapper do Boot (Instant) + `TypePrecedence.INFERRED`.
+- **Infra:** RabbitMQ (`rabbitmq:3-management`) no compose de infra.
+- **Verificado:** 202+indexação; telemetria persistida; **desacoplamento** (consumer fora → fila
+  acumula `messages=2` → drena na volta); **resiliência** (broker fora → `/chat` segue, `/documents/ingest`
+  → 503; consumers reconectam). `mvn package` verde (agent/memory/gateway). ADR 0010.
+
+**Próximo passo:** commitar a Entrega 4 e iniciar **Entrega 5 — Containerização** (Dockerfile por
+serviço + `docker-compose.yaml` completo orquestrando os 7 serviços + infra).
 
 ## Método de trabalho (SADD — Sub-Agent Driven Development)
 

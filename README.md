@@ -70,7 +70,9 @@ cd agent-service
 3. ✅ **Memória e RAG** — memory-service (Redis curto prazo + PostgreSQL longo prazo) +
    retrieval-service (FastAPI + ChromaDB) com ingestão/busca semântica. Integrado ao `/chat`
    (`conversationId`, histórico + contexto RAG no `trace`), verificado ponta-a-ponta ao vivo.
-4. ⬜ Mensageria — RabbitMQ (≥1 fluxo assíncrono: telemetria / ingestão / notificação).
+4. ✅ **Mensageria** — RabbitMQ com **dois** fluxos assíncronos: ingestão de documentos
+   (`/documents/ingest` → fila → retrieval-service indexa) e telemetria (`/chat` → fila →
+   memory-service persiste `telemetry_event`). Desacoplamento e resiliência verificados ao vivo.
 5. ⬜ Containerização — Dockerfiles + `docker-compose.yaml`.
 6. ⬜ Observabilidade — OpenTelemetry + Jaeger (+ Prometheus); pipeline de CI.
 7. ⬜ Produção em nuvem — descrição/artefatos para Kubernetes (manifests YAML, sem cluster
