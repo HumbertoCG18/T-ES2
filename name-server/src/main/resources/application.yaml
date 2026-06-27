@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: name-server
+
+server:
+  port: 8761
+
+# Eureka Server nao se registra em si mesmo nem busca registro.
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    hostname: localhost
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

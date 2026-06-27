@@ -12,6 +12,16 @@ llm:
   model: ${LLM_MODEL:chat}
   max-iterations: ${LLM_MAX_ITERATIONS:5}
 
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Config do circuit breaker 'llmGateway' fica em ResilienceConfig.java (Customizer),
+# pois a API programatica do Spring Cloud CircuitBreaker nao le resilience4j.circuitbreaker.*.
+
 management:
   endpoints:
     web:

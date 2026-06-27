@@ -1,0 +1,43 @@
+package com.tes2.agent.config;
+
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
+import org.springframework.cloud.client.circuitbreaker.Customizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.time.Duration;
+
+/**
+ * Configuracao do circuit breaker 'llmGateway'.
+ * - Abre rapido para a demonstracao (minimo de 3 chamadas, 50% de falha).
+ * - Time limiter generoso (600s): modelos locais (Ollama) sao lentos; o default de 1s do
+ *   Spring Cloud CircuitBreaker cortaria inferencias legitimas. "Indisponivel" = conexao
+ *   recusada (gateway fora), que e o cenario de fallback exigido.
+ */
+@Configuration
+public class ResilienceConfig {
+
+    @Bean
+    public Customizer<Resilience4JCircuitBreakerFactory> llmGatewayCustomizer() {
+        CircuitBreakerConfig circuitBreaker = CircuitBreakerConfig.custom()
+                .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
+                .slidingWindowSize(10)
+                .minimumNumberOfCalls(3)
+                .failureRateThreshold(50)
+                .waitDurationInOpenState(Duration.ofSeconds(10))
+                .permittedNumberOfCallsInHalfOpenState(3)
+                .build();
+
+        TimeLimiterConfig timeLimiter = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(600))
+                .build();
+
+        return factory -> factory.configure(builder -> builder
+                        .circuitBreakerConfig(circuitBreaker)
+                        .timeLimiterConfig(timeLimiter),
+                "llmGateway");
+    }
+}

@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado do repositório
 
-**Entrega 1 (Fundação) scaffoldada.** Existem dois serviços comunicando via REST, sem
-containers: `agent-service/` (Spring Boot) e `llm-gateway/` (LiteLLM sobre Ollama local). Os
-demais 5 microsserviços ainda não existem — as seções abaixo descrevem a arquitetura-alvo
-definida pela spec (`docs/t1_2026_1.pdf`), que orienta a construção dos próximos.
+**Entregas 1–2 implementadas** (builds verdes; falta verificação ao vivo da 2). Serviços:
+`agent-service/` (Spring Boot, ciclo agêntico + Eureka client + circuit breaker),
+`llm-gateway/` (LiteLLM/Ollama), `name-server/` (Eureka Server, 8761), `api-gateway/`
+(Spring Cloud Gateway, 8080). Faltam `memory-service`, `retrieval-service`, `tool-registry`
+(Entrega 3+). Arquitetura-alvo na spec (`docs/t1_2026_1.pdf`); estado em `docs/plan/README.md`.
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +
@@ -17,6 +18,12 @@ definida pela spec (`docs/t1_2026_1.pdf`), que orienta a construção dos próxi
 - Pacote base Java: `com.tes2.agent`. Group Maven `com.tes2`.
 - LLM local padrão: `llama3.1:latest` (tool calling confiável). `gemma3:4b` como alternativa
   leve. **Nunca** usar modelos `*-cloud` do Ollama (violam "local sem nuvem").
+- **Spring Cloud 2025.0.0** (BOM `spring-cloud-dependencies`) para Eureka/Gateway/CircuitBreaker.
+  Gateway = `spring-cloud-starter-gateway-server-webflux` (não o antigo `-starter-gateway`).
+- Circuit breaker = **Spring Cloud CircuitBreaker** (`spring-cloud-starter-circuitbreaker-resilience4j`,
+  factory programática), **não** a anotação `@CircuitBreaker`/`resilience4j-spring-boot3` — esta
+  dá `NoClassDefFoundError` por skew de versão com o BOM. Config em `ResilienceConfig.java`
+  (TimeLimiter 600s: LLM local é lento). Detalhe no ADR 0005.
 
 Trata-se do **Trabalho Final de Engenharia de Software II** — projeto extensionista com o
 parceiro Nubo (https://nubo.ai/). Entrega final: **03/07/2026**. Grupos de até 5.
@@ -96,6 +103,22 @@ projeto isolado, com seu próprio build, Dockerfile e ciclo de deploy:
   Entrega 5).
 - **Serviços Python/FastAPI futuros:** `uv run uvicorn app.main:app --reload` / `uv run pytest`.
 
+## Método de trabalho (Sub-Agent Driven Development)
+
+O fluxo de execução vive em [`docs/plan/`](docs/plan/README.md) — **fonte única** de estado e
+método. Antes de codar qualquer entrega:
+
+1. **Planejar** — criar `docs/plan/NN-<nome>.md` (escopo, tarefas, arquivos, critérios de
+   aceite, riscos) a partir do `_template.md`. Não codar entrega sem plano.
+2. **Decompor e delegar a subagents** — `Explore`/`cavecrew-investigator` (localizar),
+   `cavecrew-builder` (edição 1–2 arquivos), `Plan` (arquitetura), `general-purpose`
+   (multi-step isolado).
+3. **Integrar e verificar** — thread principal junta, builda, roda testes/smoke.
+4. **Atualizar estado** — marcar status na tabela de `docs/plan/README.md`; atualizar
+   `docs/architecture.md` e abrir ADR (`docs/adr/`) se houver decisão de arquitetura nova.
+
+Ao concluir uma entrega, atualizar também a tabela de status aqui e no `README.md`.
+
 ## Sequência de trabalho (entregas incrementais)
 
 A spec sugere construir em fases — siga esta ordem para manter cada incremento executável:
@@ -109,8 +132,13 @@ A spec sugere construir em fases — siga esta ordem para manter cada incremento
 4. **Mensageria** — RabbitMQ para ≥1 fluxo assíncrono (ingestão de documentos, telemetria).
 5. **Containerização** — Dockerfile por serviço + `docker-compose.yaml` orquestrando tudo.
 6. **Observabilidade** — OpenTelemetry + Jaeger; pipeline de CI.
-7. **Produção em nuvem** — descrição das alterações/artefatos para rodar em Kubernetes.
+7. **Produção em nuvem** — descrição das alterações/artefatos para rodar em Kubernetes
+   (manifests YAML; cluster rodando é opcional, não exigido).
 8. **Entrega final** — relatório técnico + vídeo de demonstração (YouTube não listado).
+
+**Bônus (fora da spec):** `frontend` — UI de chat com **shadcn/ui** (React) sobre `POST /chat`,
+só para clarear a demonstração em vídeo da Entrega 8. Manter mínimo; não consumir esforço do
+backend. Skills `shadcn` / `frontend-design` em `.agents/` cobrem isso.
 
 ## Entregáveis que definem "pronto"
 
@@ -118,9 +146,16 @@ Além do código funcional, a nota depende de artefatos específicos — verifiq
 (a) diagrama de arquitetura; (b) plataforma rodando em Docker Compose com ciclo agêntico
 funcional (≥1 chamada ao LLM + ≥1 ferramenta), Ollama local, persistência de memória, gateway
 com roteamento + circuit breaker, discovery via Eureka; (c) ≥1 fluxo assíncrono via RabbitMQ;
-(d) circuit breaker **demonstrável**; (e) observabilidade básica; (f) relatório técnico com
-decisões de arquitetura e trade-offs; (g) análise de evolução para nuvem; (h) descrição das
-mudanças para rodar em Kubernetes.
+(d) circuit breaker **demonstrável** (cenário de fallback real, ex.: llm-gateway fora do ar);
+(e) observabilidade básica; (f) relatório técnico com decisões de arquitetura e trade-offs;
+(g) análise de evolução para nuvem; (h) descrição das mudanças para rodar em Kubernetes.
+
+**Não esquecer (não-código, valem nota, fáceis de perder):** diagrama de arquitetura;
+**experimentação / avaliação de desempenho** (benchmarks de latência/throughput com
+interpretação crítica — exigido explicitamente pela spec); **discussão de riscos** (segurança,
+performance, escalabilidade, disponibilidade); pipeline de CI (Entrega 6); vídeo no YouTube
+não-listado + apresentação final. `memory-service` precisa dos **dois** níveis: Redis (curto
+prazo) **e** PostgreSQL (longo prazo).
 
 ## Tooling
 

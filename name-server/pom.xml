@@ -12,13 +12,13 @@
     </parent>
 
     <groupId>com.tes2</groupId>
-    <artifactId>agent-service</artifactId>
+    <artifactId>name-server</artifactId>
     <version>0.1.0</version>
-    <name>agent-service</name>
-    <description>Orquestrador do ciclo agentico: raciocinio -&gt; acao -&gt; observacao</description>
+    <name>name-server</name>
 
     <properties>
         <java.version>21</java.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
 
     <dependencyManagement>
@@ -26,7 +26,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2025.0.0</version>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -35,27 +35,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-        <!-- Circuit breaker via Spring Cloud CircuitBreaker (Resilience4j), alinhado ao BOM
-             spring-cloud-dependencies. API programatica CircuitBreakerFactory; evita o skew de
-             versao do resilience4j-spring-boot3 com o release train. -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -72,4 +57,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

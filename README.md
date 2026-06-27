@@ -67,9 +67,29 @@ cd agent-service
 
 1. ✅ **Fundação** — agent-service + llm-gateway via REST.
 2. ⬜ Infraestrutura — Eureka (name-server) + API Gateway + circuit breaker.
-3. ⬜ Memória e RAG — memory-service (Redis + PostgreSQL) + retrieval-service (ChromaDB).
-4. ⬜ Mensageria — RabbitMQ (fluxos assíncronos).
+3. ⬜ Memória e RAG — memory-service (Redis curto prazo + PostgreSQL longo prazo) +
+   retrieval-service (ChromaDB) com ingestão de documentos.
+4. ⬜ Mensageria — RabbitMQ (≥1 fluxo assíncrono: telemetria / ingestão / notificação).
 5. ⬜ Containerização — Dockerfiles + `docker-compose.yaml`.
-6. ⬜ Observabilidade — OpenTelemetry + Jaeger; CI.
-7. ⬜ Produção em nuvem — descrição/artefatos para Kubernetes.
-8. ⬜ Entrega final — relatório técnico + vídeo.
+6. ⬜ Observabilidade — OpenTelemetry + Jaeger (+ Prometheus); pipeline de CI.
+7. ⬜ Produção em nuvem — descrição/artefatos para Kubernetes (manifests YAML, sem cluster
+   obrigatório).
+8. ⬜ Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação.
+
+**Bônus (apoio à demo):**
+
+- ⬜ **frontend** — UI de chat com **shadcn/ui** (React) consumindo `POST /chat`. Não é
+  requisito da spec; serve só para a demonstração em vídeo (Entrega 8) ficar mais clara.
+  Manter mínimo: uma página, sem desviar esforço do backend.
+
+## Entregáveis não-código (checklist — valem nota, fáceis de esquecer)
+
+- ⬜ **Diagrama de arquitetura** — serviços, responsabilidades, protocolos de comunicação.
+- ⬜ **Relatório técnico** — metodologia, decisões + justificativas, trade-offs, dificuldades,
+  conclusões.
+- ⬜ **Avaliação de desempenho** — experimentos/benchmarks (latência, throughput) com
+  interpretação crítica dos resultados.
+- ⬜ **Discussão de riscos** — segurança, performance, escalabilidade, disponibilidade.
+- ⬜ **Análise de evolução para nuvem** + descrição das alterações para Kubernetes.
+- ⬜ **Circuit breaker demonstrado** — cenário de fallback (ex.: llm-gateway fora do ar).
+- ⬜ **Vídeo de demonstração** (YouTube não-listado) + apresentação final.
