@@ -5,6 +5,7 @@ técnico** exigido pela spec (não é trabalho duplicado: escreve aqui, monta o 
 
 | Documento | Cobre o entregável |
 |-----------|--------------------|
+| [`HANDOFF.md`](HANDOFF.md) | **transferência de sessão** — onde estamos, como rodar, próximo passo, gotchas |
 | [`plan/`](plan/README.md) | roteiro de execução + método de trabalho (SADD) + status |
 | [`architecture.md`](architecture.md) | (a) diagrama + arquitetura: serviços, responsabilidades, protocolos |
 | [`adr/`](adr/) | (f) decisões de arquitetura + justificativas |

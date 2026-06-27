@@ -48,7 +48,7 @@ uso real dos arquivos/memória de projeto do frontend. Depois 4–8.
 |---|---------|-------|--------|
 | 1 | Fundação — agent-service + llm-gateway (REST) | — | ✅ Concluída |
 | 2 | Infraestrutura — Eureka + api-gateway + circuit breaker | [`02-infraestrutura.md`](02-infraestrutura.md) | ✅ Concluída (verificada ao vivo) |
-| 3 | Memória e RAG — memory-service + retrieval-service | `03-memoria-rag.md` | ⬜ A planejar |
+| 3 | Memória e RAG — memory-service + retrieval-service | [`03-memoria-rag.md`](03-memoria-rag.md) | 📋 Planejada |
 | 4 | Mensageria — RabbitMQ (fluxos assíncronos) | `04-mensageria.md` | ⬜ A planejar |
 | 5 | Containerização — Dockerfiles + docker-compose | `05-containerizacao.md` | ⬜ A planejar |
 | 6 | Observabilidade — OpenTelemetry + Jaeger + CI | `06-observabilidade.md` | ⬜ A planejar |
