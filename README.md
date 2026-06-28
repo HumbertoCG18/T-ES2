@@ -79,12 +79,22 @@ cd agent-service
    obrigatório).
 8. ⬜ Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação.
 
-**Bônus (apoio à demo) — `frontend/`:** 🔨 em andamento. App web estilo claude.ai (Vite +
-React + Tailwind + shadcn) consumindo `POST /chat` via gateway. Já feito: app shell (sidebar,
-projetos, configurações, dark mode, busca, persistência), chat com markdown e **timeline do
-ciclo agêntico**; verificado ao vivo com LLM real + tool calling. A fazer: arquivos/memória/
-instruções de projeto, LaTeX, blocos de código, editar/regenerar, anexo no chat, copiar
-resposta. Detalhes e status em [`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
+> **`tool-registry` (microsserviço nº 5 da spec)** ✅ — serviço remoto (8084) com **7 ferramentas**
+> (calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random); o
+> agent-service as consome por `lb://` com circuit breaker. Com isso, **os 7 microsserviços existem**.
+>
+> **Capacidades extras** ✅ — rate limiting no gateway (HTTP 429), toggles de memória/RAG por conversa
+> (+ ver/limpar memória), saúde dos serviços ao vivo, upload de arquivo → indexação RAG, seletor de
+> modelo ligado ao `/chat`, citações das fontes nas respostas.
+
+**Bônus (apoio à demo) — `frontend/`:** 🔨 app web estilo claude.ai (Vite + React + Tailwind +
+shadcn) consumindo `POST /chat` via gateway. Já feito: app shell + **views dedicadas Conversas /
+Projetos / Capacidades**, favoritos (projetos e chats), agrupamento de conversas por projeto,
+busca, configurações (tema, fonte, tipo de resposta, instruções), chat com markdown/LaTeX/**blocos
+de código**, **timeline** do ciclo agêntico (Pensamento vs passos), **citações**, **citar trecho**
+da resposta, editar/regenerar/copiar, anexos, projetos (instruções/memória/arquivos com **barra de
+capacidade** e excluir projeto). Verificado ao vivo com LLM real + tool calling. Status em
+[`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
 
 Rodar o frontend (com a plataforma no ar):
 ```bash

@@ -20,27 +20,32 @@ delegada a **subagents**; a thread principal integra e verifica.
 
 > Regra: nada de codar entrega sem plano aprovado. Plano pequeno e factível > plano perfeito.
 
-## Status atual (2026-06-27)
+## Status atual (2026-06-28)
 
-**Onde estamos:** Entregas 1 e 2 concluídas e verificadas ao vivo; bônus de frontend com app
-shell funcional e chat real ponta-a-ponta. Próxima entrega de spec = **Entrega 3 (Memória e
-RAG)** — e é ela que destrava o uso real dos arquivos de Projeto no frontend (RAG).
+**Onde estamos:** Entregas **1–4 concluídas e verificadas ao vivo**. **Os 7 microsserviços da
+spec existem** (agent-service, llm-gateway, memory-service, retrieval-service, **tool-registry**,
+api-gateway, name-server). Frontend bônus bem avançado (estilo claude.ai). Próxima entrega de
+spec = **Entrega 5 (Containerização)**.
 
 **Feito (commitado no branch `dev-HCG`):**
-- ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`, calculadora) + `llm-gateway`
-  (LiteLLM/Ollama). Commit `bd5c90f`.
-- ✅ **Entrega 2** — `name-server` (Eureka), `api-gateway` (Spring Cloud Gateway), circuit
-  breaker com fallback. Verificada ao vivo. Commit `b99472d`.
-- ✅ **Correção** — Eureka self-preservation desligado em dev (banner "EMERGENCY"). Commit `e431829`.
-- 🔨 **Bônus frontend** — Vite + React + Tailwind + shadcn: app shell, chat com markdown/LaTeX/
-  código, **timeline do ciclo agêntico**, projetos (instruções/memória/arquivos), editar/
-  regenerar, copiar, anexos. Chat **funcionando com LLM real + tool calling**. Commits `ec63edd`,
-  `b5a20a1`. (Lote de features concluído; ver `B-frontend.md` para o que falta integrar ao backend.)
+- ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`) + `llm-gateway` (LiteLLM/Ollama).
+- ✅ **Entrega 2** — `name-server` (Eureka), `api-gateway` (Spring Cloud Gateway), circuit breaker.
+- ✅ **Entrega 3** — `memory-service` (Redis curto + Postgres longo) + `retrieval-service`
+  (FastAPI + ChromaDB) integrados ao `/chat` (`conversationId`, histórico, RAG, citações). ADRs 0007–0009.
+- ✅ **Entrega 4** — RabbitMQ: ingestão de documentos assíncrona (polyglot) + telemetria persistida. ADR 0010.
+- ✅ **tool-registry** (microsserviço nº 5): 7 ferramentas remotas (calculator, datetime, db_query,
+  knowledge_search, unit_convert, text_stats, random). ADR 0011.
+- ✅ **Capacidades de plataforma**: rate limiting no gateway (429), toggles de memória/RAG por
+  conversa + ver/limpar memória, saúde dos serviços ao vivo, upload→RAG, seletor de modelo real.
+- 🔨 **Bônus frontend** — app shell estilo claude.ai: views Conversas/Projetos/Capacidades, favoritos,
+  agrupamento por projeto, citar trecho, code blocks, timeline, projetos (instruções/memória/arquivos
+  com barra de capacidade), configurações (fonte/tipo de resposta/instruções), excluir projeto.
 
-**Foco agora:** voltar ao **backend da spec** — **Entrega 3 (Memória e RAG)**, que destrava o
-uso real dos arquivos/memória de projeto do frontend. Depois 4–8.
+**Foco agora:** **Entrega 5 (Containerização)** — Dockerfile por serviço + `docker-compose.yaml`
+completo subindo a plataforma toda com um comando. Depois 6–8.
 
-**Falta (spec):** Entregas 3–8 (RAG, mensageria, containers, observabilidade, K8s, relatório).
+**Falta (spec):** Entregas 5–8 (containers, observabilidade+CI, K8s, relatório+vídeo) + não-código
+(benchmarks de desempenho, discussão de riscos).
 
 ## Estado das entregas
 
@@ -54,8 +59,8 @@ uso real dos arquivos/memória de projeto do frontend. Depois 4–8.
 | 6 | Observabilidade — OpenTelemetry + Jaeger + CI | `06-observabilidade.md` | ⬜ A planejar |
 | 7 | Produção em nuvem — manifests + descrição K8s | `07-nuvem-k8s.md` | ⬜ A planejar |
 | 8 | Entrega final — relatório + vídeo + apresentação | `08-entrega-final.md` | ⬜ A planejar |
-| T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (calculator/datetime/db_query remotos; verificado ao vivo; ADR 0011) |
-| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento |
+| T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (7 ferramentas remotas: calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random; ADR 0011) |
+| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento (views Conversas/Projetos/Capacidades, favoritos, citações, toggles memória/RAG, configurações) |
 
 ## Critérios de aceite (resumo por entrega)
 
