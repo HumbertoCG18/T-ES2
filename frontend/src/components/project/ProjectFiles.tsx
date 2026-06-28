@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
+import { ingestDocument } from "@/lib/api"
 import { formatBytes, readProjectFiles, wasTruncated } from "@/lib/files"
 import { cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
@@ -29,6 +30,7 @@ function iconFor(file: ProjectFile): LucideIcon {
 export function ProjectFiles({ project }: { project: Project }) {
   const { addProjectFiles, removeProjectFile, storageError } = useStore()
   const [dragging, setDragging] = useState(false)
+  const [ragNote, setRagNote] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragDepth = useRef(0)
 
@@ -36,6 +38,26 @@ export function ProjectFiles({ project }: { project: Project }) {
     if (files.length === 0) return
     const read = await readProjectFiles(files)
     addProjectFiles(project.id, read)
+
+    // Envia o texto para o RAG (assíncrono). Só arquivos de texto têm conteúdo indexável.
+    const textFiles = read.filter((f) => f.text && f.text.trim())
+    if (textFiles.length === 0) return
+    setRagNote("Enviando para indexação…")
+    let ok = 0
+    await Promise.all(
+      textFiles.map((f) =>
+        ingestDocument(f.id, project.id, f.text as string)
+          .then(() => {
+            ok += 1
+          })
+          .catch(() => {}),
+      ),
+    )
+    setRagNote(
+      ok === textFiles.length
+        ? `${ok} arquivo(s) enviados para indexação (RAG).`
+        : `${ok}/${textFiles.length} indexados — verifique o retrieval-service/RabbitMQ.`,
+    )
   }
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -151,6 +173,12 @@ export function ProjectFiles({ project }: { project: Project }) {
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Não foi possível salvar tudo no navegador (limite de armazenamento).
           Remova alguns arquivos para liberar espaço.
+        </p>
+      )}
+
+      {ragNote && (
+        <p className="mt-3 rounded-lg border border-border bg-foreground/[0.03] px-3 py-2 text-xs text-muted-foreground">
+          {ragNote}
         </p>
       )}
 

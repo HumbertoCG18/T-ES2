@@ -5,13 +5,19 @@ import {
   Network,
   RefreshCw,
   Repeat,
+  Server,
   ShieldCheck,
   Wrench,
 } from "lucide-react"
 
 import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { fetchTools, type ToolInfo } from "@/lib/api"
+import {
+  fetchServices,
+  fetchTools,
+  type ServiceStatus,
+  type ToolInfo,
+} from "@/lib/api"
 
 interface CapabilitiesViewProps {
   collapsed: boolean
@@ -85,6 +91,7 @@ export function CapabilitiesView({
   onOpenMobile,
 }: CapabilitiesViewProps) {
   const [tools, setTools] = useState<ToolInfo[] | null>(null)
+  const [services, setServices] = useState<ServiceStatus[] | null>(null)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -95,6 +102,9 @@ export function CapabilitiesView({
       .then((t) => setTools(t))
       .catch(() => setError(true))
       .finally(() => setLoading(false))
+    fetchServices()
+      .then((s) => setServices(s))
+      .catch(() => setServices([]))
   }
 
   useEffect(() => {
@@ -158,6 +168,43 @@ export function CapabilitiesView({
                 <p className="text-sm text-muted-foreground">
                   Nenhuma ferramenta registrada.
                 </p>
+              )}
+            </div>
+          </section>
+
+          {/* Saúde dos serviços (ao vivo, via Eureka) */}
+          <section className="mt-10">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Serviços (Eureka)
+            </h2>
+            <div className="mt-3">
+              {services === null ? (
+                <p className="text-sm text-muted-foreground">Carregando serviços…</p>
+              ) : services.length === 0 ? (
+                <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+                  Nenhum serviço descoberto. Verifique o name-server (8761) e o api-gateway.
+                </div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {services.map((s) => (
+                    <div
+                      key={s.name}
+                      className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-3"
+                    >
+                      <Server className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 truncate font-mono text-sm text-foreground">
+                        {s.name.toLowerCase()}
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                        UP
+                      </span>
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {s.instances}×
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </section>

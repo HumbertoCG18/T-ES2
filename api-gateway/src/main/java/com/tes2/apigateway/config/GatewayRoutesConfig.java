@@ -16,6 +16,8 @@ public class GatewayRoutesConfig {
                 .route("agent-documents", r -> r.path("/documents/**").uri("lb://agent-service"))
                 // Inspecao das ferramentas registradas (tool-registry).
                 .route("tool-registry", r -> r.path("/tools/**").uri("lb://tool-registry"))
+                // Saude dos servicos (Eureka) para a view de Capacidades.
+                .route("agent-services", r -> r.path("/services/**").uri("lb://agent-service"))
                 .build();
     }
 }
