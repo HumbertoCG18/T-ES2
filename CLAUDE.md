@@ -109,7 +109,8 @@ projeto isolado, com seu próprio build, Dockerfile e ciclo de deploy:
 - **tool-registry** (porta 8084), de dentro de `tool-registry/` — microsserviço nº 5 (pronto):
   - Run: `.\mvnw.cmd spring-boot:run` (precisa do Postgres p/ a ferramenta `db_query`).
   - Endpoints: `GET /tools` (specs), `POST /tools/{name}/execute` (`{arguments}` → `{result}`).
-  - Ferramentas: `calculator`, `datetime`, `db_query` (SELECT read-only). Config por env: `POSTGRES_URL`,
+  - Ferramentas (7): `calculator`, `datetime`, `db_query` (SELECT read-only), `knowledge_search`
+    (RAG via lb://retrieval-service), `unit_convert`, `text_stats`, `random`. Config por env: `POSTGRES_URL`,
     `EUREKA_URL`. O `agent-service` resolve por `lb://tool-registry` (env `TOOLS_URL` p/ URL fixa).
 - **retrieval-service** (porta 8083), de dentro de `retrieval-service/` — Entrega 3 (RAG, pronto):
   - Deps: `uv sync`. Run: `uv run uvicorn app.main:app --port 8083` (`--reload` em dev).

@@ -26,7 +26,7 @@ frontend, `curl` ou Postman.
 | 2 | `llm-gateway` | Proxy unificado p/ LLMs locais | LiteLLM + Ollama | ✅ Entrega 1 |
 | 3 | `memory-service` | Histórico: curto prazo (Redis) + longo prazo (PostgreSQL) | Spring Boot | ✅ Entrega 3 |
 | 4 | `retrieval-service` | Busca semântica / RAG + ingestão de docs | FastAPI + ChromaDB | ✅ Entrega 3 |
-| 5 | `tool-registry` | Registra/expõe ferramentas invocáveis (calculator, datetime, db_query) | Spring Boot | ✅ remoto (porta 8084; ADR 0011) |
+| 5 | `tool-registry` | Registra/expõe 7 ferramentas (calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random) | Spring Boot | ✅ remoto (porta 8084; ADR 0011) |
 | 6 | `api-gateway` | Entrada única: roteamento (circuit breaker no agent-service) | Spring Cloud Gateway | ✅ Entrega 2 |
 | 7 | `name-server` | Service discovery | Eureka Server | ✅ Entrega 2 |
 
