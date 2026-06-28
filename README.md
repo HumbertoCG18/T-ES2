@@ -77,7 +77,9 @@ cd agent-service
    `docker-compose.yaml` na raiz orquestrando os 7 serviços + infra + Ollama. `docker compose up`
    sobe a plataforma toda (config por env, descoberta por nome/`lb://`); verificado ao vivo
    (7 imagens, 12 containers, Eureka in-container UP).
-6. ⬜ Observabilidade — OpenTelemetry + Jaeger (+ Prometheus); pipeline de CI.
+6. ✅ **Observabilidade** — rastreamento distribuído OpenTelemetry → Jaeger (5 serviços, incl.
+   Java↔Python via `retrieval-service`); Jaeger no compose (UI :16686). + pipeline de CI
+   (GitHub Actions: Java/Python/frontend). Verificado ao vivo.
 7. ⬜ Produção em nuvem — descrição/artefatos para Kubernetes (manifests YAML, sem cluster
    obrigatório).
 8. ⬜ Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação.

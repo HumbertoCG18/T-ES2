@@ -22,10 +22,11 @@ delegada a **subagents**; a thread principal integra e verifica.
 
 ## Status atual (2026-06-28)
 
-**Onde estamos:** Entregas **1–5 concluídas e verificadas ao vivo**. **Os 7 microsserviços da
-spec existem** e a plataforma toda sobe via **`docker compose up`** (containers + infra + Ollama).
-Frontend bônus bem avançado (estilo claude.ai). Próxima entrega de spec = **Entrega 6
-(Observabilidade + CI)**.
+**Onde estamos:** Entregas **1–6 concluídas e verificadas ao vivo**. **Os 7 microsserviços da
+spec existem** e a plataforma toda sobe via **`docker compose up`** (containers + infra + Ollama +
+Jaeger), com **tracing distribuído** (OTel→Jaeger) e **CI** (GitHub Actions). Frontend bônus bem
+avançado (estilo claude.ai). Próxima e **última entrega de dev/infra** = **Entrega 7 (Nuvem/K8s)**;
+depois, só a **Entrega 8** (relatório + vídeo + diagrama + benchmarks + riscos).
 
 **Feito (commitado no branch `dev-HCG`):**
 - ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`) + `llm-gateway` (LiteLLM/Ollama).
@@ -39,15 +40,18 @@ Frontend bônus bem avançado (estilo claude.ai). Próxima entrega de spec = **E
   conversa + ver/limpar memória, saúde dos serviços ao vivo, upload→RAG, seletor de modelo real.
 - ✅ **Entrega 5** — containerização: Dockerfile por serviço + `docker-compose.yaml` completo
   (7 serviços + infra + Ollama). `docker compose up` verificado in-container. ADR 0012.
+- ✅ **Entrega 6** — observabilidade: tracing OTel→Jaeger (5 serviços, Java↔Python) + CI
+  (GitHub Actions). ADR 0013.
 - 🔨 **Bônus frontend** — app shell estilo claude.ai: views Conversas/Projetos/Capacidades, favoritos,
   agrupamento por projeto, citar trecho, code blocks, timeline, projetos (instruções/memória/arquivos
   com barra de capacidade), configurações (fonte/tipo de resposta/instruções), excluir projeto.
 
-**Foco agora:** **Entrega 6 (Observabilidade + CI)** — tracing distribuído (OpenTelemetry + Jaeger)
-e/ou métricas (Prometheus + Grafana) + pipeline de integração contínua. Depois 7–8.
+**Foco agora:** **Entrega 7 (Produção em nuvem / Kubernetes)** — manifests YAML + descrição das
+alterações + análise de evolução para nuvem (entregáveis g+h; cluster rodando é opcional). É a
+**última de dev/infra**.
 
-**Falta (spec):** Entregas 6–8 (observabilidade+CI, K8s, relatório+vídeo) + não-código
-(benchmarks de desempenho, discussão de riscos).
+**Falta (spec):** Entrega 7 (K8s) e Entrega 8 (relatório técnico + vídeo + apresentação, que engloba
+o **diagrama**, os **benchmarks de desempenho** e a **discussão de riscos**).
 
 ## Estado das entregas
 
