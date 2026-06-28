@@ -191,6 +191,24 @@ docker compose down -v                                # parar e apagar dados/mod
 > **Ollama lento:** sem GPU a inferência é por CPU (lenta). Para GPU, descomente o bloco `deploy`
 > do serviço `ollama` (requer nvidia-container-toolkit). Detalhes no ADR 0012.
 
+## Entrega 6 — Observabilidade (tracing) + CI
+
+O `docker compose` inclui o **Jaeger** (`jaegertracing/all-in-one`). Os serviços Spring (gateway,
+agent, memory, tool-registry) e o `retrieval-service` (Python) exportam traces OTLP para o Jaeger.
+
+```bash
+docker compose up -d                       # inclui jaeger
+curl http://localhost:8080/tools           # gateway -> tool-registry (2 serviços num trace)
+curl http://localhost:8080/chat -H "Content-Type: application/json" -d "{\"message\":\"oi\"}"   # gateway -> agent -> memory/retrieval/tool
+# Jaeger UI: http://localhost:16686  -> escolha o serviço (api-gateway/agent-service) -> "Find Traces"
+```
+
+Sampling 100% em dev (`TRACING_SAMPLING`/`management.tracing.sampling.probability`). Endpoint OTLP
+por env (`OTLP_ENDPOINT` nos Spring; `OTEL_EXPORTER_OTLP_ENDPOINT` no Python). ADR 0013.
+
+**CI:** `.github/workflows/ci.yml` builda+testa os 5 módulos Java (`mvn package`), os 2 Python
+(`uv sync`) e o frontend (`tsc --noEmit`) em push/PR.
+
 ## Troubleshooting
 
 | Sintoma | Causa provável | Ação |

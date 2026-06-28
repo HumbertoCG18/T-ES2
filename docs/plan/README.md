@@ -58,7 +58,7 @@ e/ou métricas (Prometheus + Grafana) + pipeline de integração contínua. Depo
 | 3 | Memória e RAG — memory-service + retrieval-service | [`03-memoria-rag.md`](03-memoria-rag.md) | ✅ Concluída (verificada ao vivo: memória 2 níveis, RAG ancorado 3/3, discovery `lb://`, resiliência, back-compat; frontend passa `conversationId`; ADRs 0007/0008/0009) |
 | 4 | Mensageria — RabbitMQ (fluxos assíncronos) | [`04-mensageria.md`](04-mensageria.md) | ✅ Concluída (verificada ao vivo: ingestão async polyglot + telemetria persistida; desacoplamento e resiliência provados; ADR 0010) |
 | 5 | Containerização — Dockerfiles + docker-compose | [`05-containerizacao.md`](05-containerizacao.md) | ✅ Concluída (7 imagens via `docker compose build`; `up` sobe 12 containers; Eureka in-container UP + roteamento `lb://` verificados; chat requer `ollama pull`; ADR 0012) |
-| 6 | Observabilidade — OpenTelemetry + Jaeger + CI | `06-observabilidade.md` | ⬜ A planejar |
+| 6 | Observabilidade — OpenTelemetry + Jaeger + CI | [`06-observabilidade.md`](06-observabilidade.md) | ✅ Concluída (tracing OTel→Jaeger; 5 serviços reportando incl. Java↔Python; trace multi-serviço na UI; CI GitHub Actions; ADR 0013) |
 | 7 | Produção em nuvem — manifests + descrição K8s | `07-nuvem-k8s.md` | ⬜ A planejar |
 | 8 | Entrega final — relatório + vídeo + apresentação | `08-entrega-final.md` | ⬜ A planejar |
 | T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (7 ferramentas remotas: calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random; ADR 0011) |

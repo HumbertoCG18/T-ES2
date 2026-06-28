@@ -11,4 +11,9 @@ dependencies = [
     "pydantic>=2.7",
     "py-eureka-client>=0.11",
     "aio-pika>=9.4",
+    # Observabilidade (Entrega 6): tracing OTel -> Jaeger (auto-instrumentation).
+    "opentelemetry-distro",
+    "opentelemetry-exporter-otlp-proto-http",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-httpx",
 ]

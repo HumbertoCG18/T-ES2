@@ -49,7 +49,10 @@ frontend, `curl` ou Postman.
 - **Resiliência (Resilience4j):** circuit breaker no caminho `agent-service` → `llm-gateway`
   (fallback quando o LLM está indisponível) e breakers próprios para `memory-service`/
   `retrieval-service` (time limiter curto; fallback = sem histórico / sem RAG; o `/chat` não quebra).
-- **Observabilidade:** OpenTelemetry + Jaeger (tracing) e/ou Prometheus + Grafana (métricas).
+- **Observabilidade (Entrega 6 ✅):** rastreamento distribuído **OpenTelemetry → Jaeger** (OTLP).
+  Serviços Spring (gateway/agent/memory/tool-registry) via Micrometer Tracing; `retrieval-service`
+  (Python) via auto-instrumentation. Um trace atravessa gateway → agent → memory/retrieval/tool
+  (Java↔Python). Jaeger UI na 16686. Métricas (Prometheus/Grafana) ficam opcionais. ADR 0013.
 
 ## Diagrama (lógico, ASCII — substituir por versão visual no relatório)
 

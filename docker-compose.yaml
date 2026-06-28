@@ -74,6 +74,16 @@ services:
     #       devices:
     #         - { driver: nvidia, count: all, capabilities: [gpu] }
 
+  jaeger:
+    image: jaegertracing/all-in-one
+    container_name: jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"   # recebe OTLP (HTTP 4318) dos serviços
+    ports:
+      - "16686:16686"   # UI
+      - "4318:4318"     # OTLP HTTP
+    restart: unless-stopped
+
   # ---------------- Serviços ----------------
   name-server:
     build: ./name-server
@@ -101,6 +111,7 @@ services:
       POSTGRES_PASSWORD: postgres
       REDIS_HOST: redis
       RABBITMQ_HOST: rabbitmq
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports: ["8082:8082"]
     depends_on:
       postgres: { condition: service_healthy }
@@ -118,6 +129,13 @@ services:
       CHROMA_HOST: chromadb
       RABBITMQ_HOST: rabbitmq
       SERVICE_HOST: retrieval-service   # registrado no Eureka; resolvido por DNS do compose
+      # Tracing OTel -> Jaeger
+      OTEL_SERVICE_NAME: retrieval-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     ports: ["8083:8083"]
     depends_on:
       chromadb: { condition: service_started }
@@ -135,6 +153,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       RETRIEVAL_URL: lb://retrieval-service
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports: ["8084:8084"]
     depends_on:
       postgres: { condition: service_healthy }
@@ -151,6 +170,7 @@ services:
       MEMORY_URL: lb://memory-service
       RETRIEVAL_URL: lb://retrieval-service
       TOOLS_URL: lb://tool-registry
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports: ["8081:8081"]
     depends_on:
       rabbitmq: { condition: service_healthy }
@@ -164,6 +184,7 @@ services:
     environment:
       EUREKA_URL: http://name-server:8761/eureka
       REDIS_HOST: redis
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports: ["8080:8080"]
     depends_on:
       redis: { condition: service_healthy }

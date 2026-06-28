@@ -23,3 +23,4 @@ criar um novo ADR que substitua o anterior.
 | [0010](0010-mensageria-rabbitmq.md) | Mensageria RabbitMQ: ingestão assíncrona (polyglot) + telemetria | Aceito |
 | [0011](0011-tool-registry-remoto.md) | tool-registry remoto; ferramentas (calculator/datetime/db_query) fora do agent-service | Aceito |
 | [0012](0012-containerizacao.md) | Containerização: Dockerfile por serviço + docker-compose completo (+ Ollama) | Aceito |
+| [0013](0013-observabilidade-tracing.md) | Observabilidade: tracing distribuído (OpenTelemetry + Jaeger) + CI (GitHub Actions) | Aceito |

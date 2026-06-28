@@ -12,4 +12,5 @@ RUN uv sync
 COPY app ./app
 
 EXPOSE 8083
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8083"]
+# opentelemetry-instrument auto-instrumenta FastAPI + httpx (tracing -> Jaeger via OTEL_* env).
+CMD ["uv", "run", "opentelemetry-instrument", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8083"]
