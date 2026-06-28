@@ -163,6 +163,34 @@ curl http://localhost:8080/chat -H "Content-Type: application/json" -d "{\"messa
 Ferramentas: `calculator`, `datetime`, `db_query` (SELECT read-only; rejeita DDL/DML). Breaker
 `toolRegistry`: registry fora → `/chat` responde sem ferramentas (fallback), sem 5xx.
 
+## Entrega 5 — Plataforma toda em Docker Compose
+
+`docker-compose.yaml` na raiz sobe os **7 serviços + infra (Redis/Postgres/ChromaDB/RabbitMQ) +
+Ollama** numa rede só. Config 100% por env; serviços resolvem-se por nome e por `lb://` (Eureka).
+
+```bash
+docker compose build                                  # constroi as 7 imagens (1a vez ~minutos)
+docker compose up -d                                  # sobe tudo
+
+# Puxar os modelos uma vez (ficam no volume ollama-models):
+docker compose exec ollama ollama pull llama3.1
+docker compose exec ollama ollama pull embeddinggemma:300m
+
+# Eureka: http://localhost:8761  -> AGENT/MEMORY/RETRIEVAL/TOOL-REGISTRY/API-GATEWAY UP
+curl http://localhost:8080/chat -H "Content-Type: application/json" -d "{\"message\":\"Quanto e (12+8)*3?\"}"
+
+docker compose logs -f agent-service                  # acompanhar
+docker compose down                                   # parar (mantem volumes)
+docker compose down -v                                # parar e apagar dados/modelos
+```
+
+> **Conflito de portas:** o compose mapeia as mesmas portas do modo "processos locais"
+> (8080–8084, 8761, 4000, infra). Não rode os dois ao mesmo tempo — pare os processos locais e os
+> containers de `infra/docker-compose.infra.yaml` antes de subir o compose completo.
+>
+> **Ollama lento:** sem GPU a inferência é por CPU (lenta). Para GPU, descomente o bloco `deploy`
+> do serviço `ollama` (requer nvidia-container-toolkit). Detalhes no ADR 0012.
+
 ## Troubleshooting
 
 | Sintoma | Causa provável | Ação |

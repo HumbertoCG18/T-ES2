@@ -96,5 +96,10 @@ frontend, `curl` ou Postman.
   Desacoplamento provado (fila acumula com consumer fora e drena na volta); broker fora →
   `/chat` segue e `/documents/ingest` responde 503. Decisão em ADR 0010.
 
-Ainda sem containers de serviço (só infra em containers): cada serviço roda como processo local;
-Dockerfiles + `docker-compose.yaml` completo chegam na Entrega 5.
+- **Entrega 5 — Containerização:** Dockerfile por serviço (5 Spring multi-stage Maven→JRE; 2 Python
+  slim+uv) + `docker-compose.yaml` na raiz orquestrando os 7 serviços + infra (Redis/Postgres/
+  ChromaDB/RabbitMQ) + Ollama. `docker compose up` sobe a plataforma toda, 100% local; config por
+  env; descoberta por nome/`lb://`. Modelos do Ollama puxados no volume. ADR 0012.
+
+Os serviços agora rodam tanto como **processos locais** (dev) quanto **em containers** (compose).
+O frontend (bônus) roda via `npm run dev` (fora do compose por ora).
