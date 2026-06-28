@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { clearMemory, fetchMemory, type MemoryMessage } from "@/lib/api"
 import { useStore } from "@/store/store"
 
@@ -26,6 +27,10 @@ export function ConversationOptions() {
   const [memOpen, setMemOpen] = useState(false)
   const [turns, setTurns] = useState<MemoryMessage[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [clearing, setClearing] = useState(false)
+  const [cleared, setCleared] = useState(false)
+  const [clearError, setClearError] = useState(false)
 
   if (!activeConversation) return null
   const id = activeConversation.id
@@ -36,16 +41,24 @@ export function ConversationOptions() {
     setMemOpen(true)
     setLoading(true)
     setTurns(null)
+    setCleared(false)
     fetchMemory(id)
       .then(setTurns)
       .catch(() => setTurns([]))
       .finally(() => setLoading(false))
   }
 
-  const clear = () => {
+  const doClear = () => {
+    setClearing(true)
+    setClearError(false)
     clearMemory(id)
-      .then(() => setTurns([]))
-      .catch(() => {})
+      .then(() => {
+        setTurns([])
+        setCleared(true)
+        setConfirmOpen(false)
+      })
+      .catch(() => setClearError(true))
+      .finally(() => setClearing(false))
   }
 
   return (
@@ -89,7 +102,7 @@ export function ConversationOptions() {
             <Eye aria-hidden="true" />
             Ver memória
           </DropdownMenuItem>
-          <DropdownMenuItem danger onSelect={clear}>
+          <DropdownMenuItem danger onSelect={() => setConfirmOpen(true)}>
             <Trash2 aria-hidden="true" />
             Limpar memória
           </DropdownMenuItem>
@@ -107,10 +120,20 @@ export function ConversationOptions() {
 
           <div className="max-h-[50vh] overflow-y-auto">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Carregando…</p>
+              <div className="flex flex-col gap-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="rounded-lg border border-border p-2.5">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="mt-1.5 h-3.5 w-full" />
+                    <Skeleton className="mt-1 h-3.5 w-3/4" />
+                  </div>
+                ))}
+              </div>
             ) : !turns || turns.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Sem memória persistida para esta conversa.
+                {cleared
+                  ? "Memória limpa."
+                  : "Sem memória persistida para esta conversa."}
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
@@ -133,16 +156,38 @@ export function ConversationOptions() {
 
           {turns && turns.length > 0 && (
             <div className="mt-3 flex justify-end">
-              <Button
-                variant="ghost"
-                onClick={clear}
-                className="text-destructive"
-              >
+              <Button variant="danger" onClick={() => setConfirmOpen(true)}>
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                 Limpar memória
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmação de limpeza (ação destrutiva). */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Limpar memória?</DialogTitle>
+            <DialogDescription>
+              Os turnos persistidos desta conversa (longo prazo) serão removidos. Esta ação
+              não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          {clearError && (
+            <p className="text-sm text-destructive">
+              Não foi possível limpar. Verifique se o memory-service está no ar.
+            </p>
+          )}
+          <div className="mt-2 flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="dangerSolid" onClick={doClear} disabled={clearing}>
+              {clearing ? "Limpando…" : "Limpar memória"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

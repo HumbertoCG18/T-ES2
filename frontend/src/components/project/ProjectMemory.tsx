@@ -67,7 +67,7 @@ export function ProjectMemory({ project }: { project: Project }) {
                 type="button"
                 onClick={() => removeProjectMemory(project.id, i)}
                 aria-label="Remover nota"
-                className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 outline-none transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent group-hover:opacity-100"
+                className="shrink-0 rounded-md p-1 text-muted-foreground opacity-100 outline-none transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent md:opacity-0 md:group-hover:opacity-100"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </button>

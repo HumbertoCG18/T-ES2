@@ -93,7 +93,7 @@ export function AssistantMessage({
       )}
 
       {showActions && (
-        <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+        <div className="mt-2 flex items-center gap-1 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100">
           <MessageActionButton
             icon={copied ? Check : Copy}
             label={copied ? "Copiado" : "Copiar resposta"}

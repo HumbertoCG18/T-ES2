@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
-import { Check, Filter, FolderClosed, Plus, Search, Trash2, X } from "lucide-react"
+import { Check, Filter, FolderClosed, Plus, Trash2, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { SearchInput } from "@/components/ui/search-input"
 import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -143,17 +144,13 @@ export function RecentsView({ collapsed, onExpand, onOpenMobile }: RecentsViewPr
           </div>
 
           {/* Busca */}
-          <div className="relative mt-4">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pesquisar chats…"
-              aria-label="Pesquisar chats"
-              className="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-accent/40 focus-visible:ring-2 focus-visible:ring-accent/30"
-            />
-          </div>
+          <SearchInput
+            wrapperClassName="mt-4"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Pesquisar chats…"
+            aria-label="Pesquisar chats"
+          />
 
           {/* Lista */}
           <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-card">

@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
-import { ArrowDownUp, FileText, Plus, Search } from "lucide-react"
+import { ArrowDownUp, FileText, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { SearchInput } from "@/components/ui/search-input"
 import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -92,17 +93,13 @@ export function ProjectsGalleryView({
             </div>
           </div>
 
-          <div className="relative mt-4">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Procurar projetos…"
-              aria-label="Procurar projetos"
-              className="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-accent/40 focus-visible:ring-2 focus-visible:ring-accent/30"
-            />
-          </div>
+          <SearchInput
+            wrapperClassName="mt-4"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Procurar projetos…"
+            aria-label="Procurar projetos"
+          />
 
           {list.length === 0 ? (
             <div className="mt-8 rounded-xl border border-dashed border-border p-10 text-center">

@@ -5,7 +5,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from "react"
-import { ArrowUp, Paperclip, X } from "lucide-react"
+import { ArrowUp, Loader2, Paperclip, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -174,10 +174,14 @@ export function Composer({ onSend, disabled, autoFocus }: ComposerProps) {
           type="button"
           onClick={submit}
           disabled={!canSend}
-          aria-label="Enviar mensagem"
-          className="shrink-0"
+          aria-label={disabled ? "Gerando resposta" : "Enviar mensagem"}
+          className={`shrink-0 ${disabled ? "disabled:bg-accent/50 disabled:opacity-100" : ""}`}
         >
-          <ArrowUp className="h-5 w-5" aria-hidden="true" />
+          {disabled ? (
+            <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          ) : (
+            <ArrowUp className="h-5 w-5" aria-hidden="true" />
+          )}
         </Button>
       </div>
     </div>

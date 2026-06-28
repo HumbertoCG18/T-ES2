@@ -109,7 +109,7 @@ export function UserMessage({ message, conversationId, index }: UserMessageProps
           <AttachmentList attachments={message.attachments} />
         )}
       </div>
-      <div className="mt-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+      <div className="mt-1 opacity-100 transition-opacity focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100">
         <MessageActionButton
           icon={Pencil}
           label="Editar"

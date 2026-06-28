@@ -99,7 +99,7 @@ export function ConversationItem({
         <DropdownMenuTrigger
           aria-label="Opções da conversa"
           className={cn(
-            "absolute right-1 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 outline-none transition-opacity hover:bg-foreground/[0.1] hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent group-hover:opacity-100 data-[state=open]:opacity-100",
+            "absolute right-1 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-100 outline-none transition-opacity hover:bg-foreground/[0.1] hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100",
           )}
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />

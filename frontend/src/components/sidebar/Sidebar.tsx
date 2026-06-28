@@ -4,13 +4,13 @@ import {
   MessagesSquare,
   PanelLeft,
   Plus,
-  Search,
   Sparkles,
   X,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { SearchInput } from "@/components/ui/search-input"
 import { Tooltip } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -100,20 +100,12 @@ export function Sidebar({
 
       {/* Busca */}
       <div className="px-3 pb-2">
-        <div className="relative">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar conversas"
-            aria-label="Buscar conversas"
-            className="h-9 w-full rounded-lg border border-transparent bg-foreground/[0.05] pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-accent/40 focus-visible:bg-card focus-visible:ring-2 focus-visible:ring-accent/30"
-          />
-        </div>
+        <SearchInput
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar conversas"
+          aria-label="Buscar conversas"
+        />
       </div>
 
       {/* Navegação */}

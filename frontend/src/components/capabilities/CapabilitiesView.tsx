@@ -12,6 +12,7 @@ import {
 
 import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   fetchServices,
   fetchTools,
@@ -93,19 +94,36 @@ export function CapabilitiesView({
   const [tools, setTools] = useState<ToolInfo[] | null>(null)
   const [services, setServices] = useState<ServiceStatus[] | null>(null)
   const [error, setError] = useState(false)
+  const [servicesError, setServicesError] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const load = () => {
     setLoading(true)
     setError(false)
+    setServicesError(false)
+    setServices(null)
     fetchTools()
       .then((t) => setTools(t))
       .catch(() => setError(true))
       .finally(() => setLoading(false))
     fetchServices()
       .then((s) => setServices(s))
-      .catch(() => setServices([]))
+      .catch(() => {
+        setServices([])
+        setServicesError(true)
+      })
   }
+
+  const CardSkeleton = () => (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-7 w-7 rounded-full" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+      <Skeleton className="mt-3 h-3.5 w-full" />
+      <Skeleton className="mt-2 h-3.5 w-2/3" />
+    </div>
+  )
 
   useEffect(() => {
     load()
@@ -152,7 +170,11 @@ export function CapabilitiesView({
 
             <div className="mt-3">
               {loading ? (
-                <p className="text-sm text-muted-foreground">Carregando ferramentas…</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <CardSkeleton key={i} />
+                  ))}
+                </div>
               ) : error ? (
                 <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
                   Não foi possível carregar as ferramentas. Verifique se a plataforma
@@ -179,7 +201,16 @@ export function CapabilitiesView({
             </h2>
             <div className="mt-3">
               {services === null ? (
-                <p className="text-sm text-muted-foreground">Carregando serviços…</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 rounded-xl" />
+                  ))}
+                </div>
+              ) : servicesError ? (
+                <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+                  Não foi possível consultar os serviços. Verifique o name-server (8761) e o
+                  api-gateway (8080).
+                </div>
               ) : services.length === 0 ? (
                 <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
                   Nenhum serviço descoberto. Verifique o name-server (8761) e o api-gateway.
