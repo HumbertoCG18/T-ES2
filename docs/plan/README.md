@@ -22,11 +22,11 @@ delegada a **subagents**; a thread principal integra e verifica.
 
 ## Status atual (2026-06-28)
 
-**Onde estamos:** Entregas **1–6 concluídas e verificadas ao vivo**. **Os 7 microsserviços da
-spec existem** e a plataforma toda sobe via **`docker compose up`** (containers + infra + Ollama +
-Jaeger), com **tracing distribuído** (OTel→Jaeger) e **CI** (GitHub Actions). Frontend bônus bem
-avançado (estilo claude.ai). Próxima e **última entrega de dev/infra** = **Entrega 7 (Nuvem/K8s)**;
-depois, só a **Entrega 8** (relatório + vídeo + diagrama + benchmarks + riscos).
+**Onde estamos:** Entregas **1–7 concluídas e verificadas ao vivo** — **toda a parte de
+dev/infra está pronta**. Os 7 microsserviços existem; a plataforma sobe via `docker compose up`
+(containers + infra + Ollama + Jaeger) com tracing OTel→Jaeger e CI; e há manifests K8s (`k8s/`) +
+análise de evolução para nuvem. Frontend bônus bem avançado (estilo claude.ai). **Falta só a
+Entrega 8** (relatório técnico + vídeo + apresentação, englobando diagrama, benchmarks e riscos).
 
 **Feito (commitado no branch `dev-HCG`):**
 - ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`) + `llm-gateway` (LiteLLM/Ollama).
@@ -46,12 +46,13 @@ depois, só a **Entrega 8** (relatório + vídeo + diagrama + benchmarks + risco
   agrupamento por projeto, citar trecho, code blocks, timeline, projetos (instruções/memória/arquivos
   com barra de capacidade), configurações (fonte/tipo de resposta/instruções), excluir projeto.
 
-**Foco agora:** **Entrega 7 (Produção em nuvem / Kubernetes)** — manifests YAML + descrição das
-alterações + análise de evolução para nuvem (entregáveis g+h; cluster rodando é opcional). É a
-**última de dev/infra**.
+**Foco agora:** **Entrega 8 (final)** — relatório técnico + vídeo (YouTube não-listado) +
+apresentação. Engloba os artefatos não-código: **diagrama** de arquitetura (visual), **benchmarks de
+desempenho** (experimentação + interpretação crítica — a telemetria persistida é a base) e
+**discussão de riscos** (segurança, performance, escalabilidade, disponibilidade). As decisões de
+arquitetura já estão nos **ADRs 0001–0014** (insumo direto do relatório).
 
-**Falta (spec):** Entrega 7 (K8s) e Entrega 8 (relatório técnico + vídeo + apresentação, que engloba
-o **diagrama**, os **benchmarks de desempenho** e a **discussão de riscos**).
+**Falta (spec):** apenas a **Entrega 8** (documentação/vídeo). Toda a dev/infra (1–7) está concluída.
 
 ## Estado das entregas
 
