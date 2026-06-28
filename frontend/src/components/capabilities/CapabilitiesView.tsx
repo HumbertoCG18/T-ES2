@@ -158,7 +158,7 @@ export function CapabilitiesView({
               <button
                 type="button"
                 onClick={load}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+                className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <RefreshCw
                   className={loading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"}

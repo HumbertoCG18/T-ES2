@@ -15,7 +15,7 @@ export function Citations({ citations }: { citations: Citation[] }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="group inline-flex items-center gap-1.5 rounded-lg py-1 pr-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+        className="group inline-flex items-center gap-1.5 rounded-lg py-1 pr-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <ChevronRight
           className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-90")}

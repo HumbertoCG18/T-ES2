@@ -52,7 +52,7 @@ export function ConversationList({ query }: { query: string }) {
           <button
             type="button"
             onClick={() => openProject(group.projectId)}
-            className="flex w-full items-center gap-1.5 rounded-md px-2.5 pb-1.5 pt-0.5 text-left text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex w-full items-center gap-1.5 rounded-md px-2.5 pb-1.5 pt-0.5 text-left text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             title={`Abrir projeto ${group.label}`}
           >
             <FolderClosed className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

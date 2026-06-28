@@ -127,7 +127,7 @@ export function Composer({ onSend, disabled, autoFocus }: ComposerProps) {
                 type="button"
                 onClick={() => removeAttachment(i)}
                 aria-label={`Remover anexo ${a.name}`}
-                className="ml-0.5 rounded p-0.5 text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+                className="ml-0.5 rounded p-0.5 text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <X className="h-3 w-3" aria-hidden="true" />
               </button>

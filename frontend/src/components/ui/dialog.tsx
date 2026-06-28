@@ -44,7 +44,7 @@ const DialogContent = React.forwardRef<
       {showClose && (
         <DialogPrimitive.Close
           aria-label="Fechar"
-          className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+          className="absolute right-4 top-4 rounded-lg p-1 text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </DialogPrimitive.Close>

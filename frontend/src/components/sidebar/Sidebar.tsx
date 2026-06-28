@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
+import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/search-input"
 import { Tooltip } from "@/components/ui/tooltip"
@@ -61,10 +62,7 @@ export function Sidebar({
       {/* Cabeçalho */}
       <div className="flex h-14 shrink-0 items-center justify-between gap-2 px-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent"
-            aria-hidden="true"
-          />
+          <Logo className="h-5 w-5 shrink-0 text-accent" />
           <span className="truncate text-sm font-semibold tracking-tight text-foreground">
             Plataforma de Agentes
           </span>
@@ -117,7 +115,7 @@ export function Sidebar({
             onClick={onClick}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+              "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               active
                 ? "bg-foreground/[0.06] text-foreground"
                 : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",

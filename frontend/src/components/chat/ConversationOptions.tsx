@@ -66,7 +66,7 @@ export function ConversationOptions() {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Opções da conversa"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent data-[state=open]:bg-foreground/[0.06]"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=open]:bg-foreground/[0.06]"
         >
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
         </DropdownMenuTrigger>

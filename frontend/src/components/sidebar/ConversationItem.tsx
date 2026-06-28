@@ -65,7 +65,7 @@ export function ConversationItem({
           if (e.key === "Enter") commitRename()
           if (e.key === "Escape") setEditing(false)
         }}
-        className="w-full rounded-lg border border-accent/40 bg-card px-2.5 py-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="w-full rounded-lg border border-accent/40 bg-card px-2.5 py-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label="Renomear conversa"
       />
     )
@@ -83,7 +83,7 @@ export function ConversationItem({
       <button
         type="button"
         onClick={() => selectConversation(conversation.id)}
-        className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-2 pl-2.5 pr-8 text-left text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-2 pl-2.5 pr-8 text-left text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         title={conversation.title}
       >
         {conversation.favorite && (
@@ -99,7 +99,7 @@ export function ConversationItem({
         <DropdownMenuTrigger
           aria-label="Opções da conversa"
           className={cn(
-            "absolute right-1 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-100 outline-none transition-opacity hover:bg-foreground/[0.1] hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100",
+            "absolute right-1 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-100 outline-none transition-opacity hover:bg-foreground/[0.1] hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background md:opacity-0 md:group-hover:opacity-100 data-[state=open]:opacity-100",
           )}
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />

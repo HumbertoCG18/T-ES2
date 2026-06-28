@@ -28,7 +28,7 @@ export function FavoritesSection() {
             type="button"
             onClick={() => openProject(p.id)}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               p.id === activeProjectId
                 ? "bg-foreground/[0.07] text-foreground"
                 : "text-foreground hover:bg-foreground/[0.05]",

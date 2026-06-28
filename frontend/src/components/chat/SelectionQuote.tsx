@@ -69,7 +69,7 @@ export function SelectionQuote() {
         top: Math.max(8, pos.y - 42),
         transform: "translateX(-50%)",
       }}
-      className="z-50 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-md outline-none transition-colors hover:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-accent"
+      className="z-50 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-md outline-none transition-colors hover:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <Quote className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
       Citar trecho

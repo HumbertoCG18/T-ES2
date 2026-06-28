@@ -48,7 +48,7 @@ function EditableTitle() {
           if (e.key === "Enter") commit()
           if (e.key === "Escape") setEditing(false)
         }}
-        className="w-full max-w-md rounded-md bg-foreground/[0.06] px-2 py-1 text-sm font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="w-full max-w-md rounded-md bg-foreground/[0.06] px-2 py-1 text-sm font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label="Título da conversa"
       />
     )
@@ -61,7 +61,7 @@ function EditableTitle() {
           <button
             type="button"
             onClick={() => openProject(project.id)}
-            className="flex max-w-[40%] shrink-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex max-w-[40%] shrink-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             title={`Projeto: ${project.name}`}
           >
             <FolderClosed className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -78,7 +78,7 @@ function EditableTitle() {
           setDraft(activeConversation.title)
           setEditing(true)
         }}
-        className="truncate rounded-md px-2 py-1 text-sm font-medium text-foreground outline-none transition-colors hover:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-accent"
+        className="truncate rounded-md px-2 py-1 text-sm font-medium text-foreground outline-none transition-colors hover:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         title="Renomear conversa"
       >
         {activeConversation.title}

@@ -96,7 +96,7 @@ export function RecentsView({ collapsed, onExpand, onOpenMobile }: RecentsViewPr
             </h1>
             <div className="flex items-center gap-2">
               <DropdownMenu>
-                <DropdownMenuTrigger className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-accent">
+                <DropdownMenuTrigger className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <Filter className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
                   {filterLabel}
                 </DropdownMenuTrigger>
@@ -169,7 +169,7 @@ export function RecentsView({ collapsed, onExpand, onOpenMobile }: RecentsViewPr
                       onClick={() =>
                         selectMode ? toggleSel(c.id) : selectConversation(c.id)
                       }
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-foreground/[0.03] focus-visible:bg-foreground/[0.03] focus-visible:ring-2 focus-visible:ring-accent"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-foreground/[0.03] focus-visible:bg-foreground/[0.03] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       {selectMode && (
                         <span

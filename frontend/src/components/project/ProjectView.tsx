@@ -73,7 +73,7 @@ function EditableName({ project }: { project: Project }) {
             setEditing(false)
           }
         }}
-        className="w-full rounded-lg bg-foreground/[0.06] px-2 py-1 font-display text-2xl font-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="w-full rounded-lg bg-foreground/[0.06] px-2 py-1 font-display text-2xl font-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label="Nome do projeto"
       />
     )
@@ -86,7 +86,7 @@ function EditableName({ project }: { project: Project }) {
         setDraft(project.name)
         setEditing(true)
       }}
-      className="rounded-lg px-2 py-1 text-left font-display text-2xl font-normal text-foreground outline-none transition-colors hover:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-accent"
+      className="rounded-lg px-2 py-1 text-left font-display text-2xl font-normal text-foreground outline-none transition-colors hover:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       title="Renomear projeto"
     >
       {project.name}
@@ -178,7 +178,7 @@ export function ProjectView({
               <DropdownMenu>
                 <DropdownMenuTrigger
                   aria-label="Opções do projeto"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent data-[state=open]:bg-foreground/[0.05]"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=open]:bg-foreground/[0.05]"
                 >
                   <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                 </DropdownMenuTrigger>
@@ -252,7 +252,7 @@ export function ProjectView({
                         key={c.id}
                         type="button"
                         onClick={() => selectConversation(c.id)}
-                        className="group flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left outline-none transition-colors hover:border-accent/30 hover:bg-foreground/[0.03] focus-visible:ring-2 focus-visible:ring-accent"
+                        className="group flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left outline-none transition-colors hover:border-accent/30 hover:bg-foreground/[0.03] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <MessageSquare
                           className="h-4 w-4 shrink-0 text-muted-foreground"

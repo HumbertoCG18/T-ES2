@@ -127,7 +127,7 @@ function Segmented<T extends string>({
             aria-checked={selected}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "rounded-lg px-2.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+              "rounded-lg px-2.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               selected
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -195,7 +195,7 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                         aria-checked={selected}
                         onClick={() => setTheme(opt.value)}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+                          "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                           selected
                             ? "bg-card text-foreground shadow-sm"
                             : "text-muted-foreground hover:text-foreground",
@@ -300,7 +300,7 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                     aria-checked={selected}
                     onClick={() => setModel(m.id)}
                     className={cn(
-                      "flex items-center justify-between rounded-xl border px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+                      "flex items-center justify-between rounded-xl border px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                       selected
                         ? "border-accent/50 bg-accent/[0.06]"
                         : "border-border hover:bg-foreground/[0.03]",
@@ -356,7 +356,7 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent"
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         {linkLabel}

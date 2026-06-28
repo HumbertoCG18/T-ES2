@@ -144,7 +144,7 @@ export function ProjectFiles({ project }: { project: Project }) {
         onDrop={onDrop}
         aria-label="Enviar arquivos: clique ou arraste e solte"
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-4 py-6 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+          "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-4 py-6 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           dragging
             ? "border-accent/60 bg-accent/[0.06]"
             : "border-border hover:border-accent/40 hover:bg-foreground/[0.02]",
@@ -207,7 +207,7 @@ export function ProjectFiles({ project }: { project: Project }) {
                   type="button"
                   onClick={() => removeProjectFile(project.id, file.id)}
                   aria-label={`Remover ${file.name}`}
-                  className="shrink-0 rounded-md p-1 text-muted-foreground opacity-100 outline-none transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent md:opacity-0 md:group-hover:opacity-100"
+                  className="shrink-0 rounded-md p-1 text-muted-foreground opacity-100 outline-none transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background md:opacity-0 md:group-hover:opacity-100"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>

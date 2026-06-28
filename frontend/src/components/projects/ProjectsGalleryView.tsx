@@ -71,7 +71,7 @@ export function ProjectsGalleryView({
             </h1>
             <div className="flex items-center gap-2">
               <DropdownMenu>
-                <DropdownMenuTrigger className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-accent">
+                <DropdownMenuTrigger className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none transition-colors hover:bg-foreground/[0.04] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <ArrowDownUp className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
                   {SORT_LABEL[sort]}
                 </DropdownMenuTrigger>
@@ -124,7 +124,7 @@ export function ProjectsGalleryView({
                   key={p.id}
                   type="button"
                   onClick={() => openProject(p.id)}
-                  className="flex flex-col rounded-xl border border-border bg-card p-4 text-left outline-none transition-colors hover:border-accent/40 hover:bg-foreground/[0.02] focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex flex-col rounded-xl border border-border bg-card p-4 text-left outline-none transition-colors hover:border-accent/40 hover:bg-foreground/[0.02] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <span className="truncate text-sm font-semibold text-foreground">
                     {p.name}
