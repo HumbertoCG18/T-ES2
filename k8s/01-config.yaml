@@ -1,0 +1,26 @@
+# Config compartilhada (env) e segredo (senha do Postgres).
+# Mesmos valores do docker-compose, agora apontando para os Services do K8s (DNS).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: tes2
+data:
+  EUREKA_URL: http://name-server:8761/eureka
+  LLM_BASE_URL: http://llm-gateway:4000
+  OLLAMA_BASE_URL: http://ollama:11434
+  POSTGRES_URL: jdbc:postgresql://postgres:5432/memory
+  POSTGRES_USER: postgres
+  REDIS_HOST: redis
+  CHROMA_HOST: chromadb
+  RABBITMQ_HOST: rabbitmq
+  OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: platform-secret
+  namespace: tes2
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: postgres

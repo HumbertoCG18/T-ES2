@@ -63,7 +63,7 @@ o **diagrama**, os **benchmarks de desempenho** e a **discussão de riscos**).
 | 4 | Mensageria — RabbitMQ (fluxos assíncronos) | [`04-mensageria.md`](04-mensageria.md) | ✅ Concluída (verificada ao vivo: ingestão async polyglot + telemetria persistida; desacoplamento e resiliência provados; ADR 0010) |
 | 5 | Containerização — Dockerfiles + docker-compose | [`05-containerizacao.md`](05-containerizacao.md) | ✅ Concluída (7 imagens via `docker compose build`; `up` sobe 12 containers; Eureka in-container UP + roteamento `lb://` verificados; chat requer `ollama pull`; ADR 0012) |
 | 6 | Observabilidade — OpenTelemetry + Jaeger + CI | [`06-observabilidade.md`](06-observabilidade.md) | ✅ Concluída (tracing OTel→Jaeger; 5 serviços reportando incl. Java↔Python; trace multi-serviço na UI; CI GitHub Actions; ADR 0013) |
-| 7 | Produção em nuvem — manifests + descrição K8s | `07-nuvem-k8s.md` | ⬜ A planejar |
+| 7 | Produção em nuvem — manifests + descrição K8s | [`07-nuvem-k8s.md`](07-nuvem-k8s.md) | ✅ Concluída (`k8s/` com 35 recursos — 7 serviços + infra + Jaeger + Ingress; `kubectl kustomize` válido; análise de evolução `cloud-evolution.md`; ADR 0014) |
 | 8 | Entrega final — relatório + vídeo + apresentação | `08-entrega-final.md` | ⬜ A planejar |
 | T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (7 ferramentas remotas: calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random; ADR 0011) |
 | B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento (views Conversas/Projetos/Capacidades, favoritos, citações, toggles memória/RAG, configurações) |

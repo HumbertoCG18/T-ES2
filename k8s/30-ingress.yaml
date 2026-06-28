@@ -1,0 +1,19 @@
+# Ingress: unico ponto de entrada externo -> api-gateway (espelha o principio do Compose).
+# Requer um Ingress Controller no cluster (ex.: ingress-nginx). Ajustar o host conforme o ambiente.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-ingress
+  namespace: tes2
+spec:
+  rules:
+    - host: tes2.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080

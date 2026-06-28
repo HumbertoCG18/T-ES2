@@ -80,8 +80,9 @@ cd agent-service
 6. ✅ **Observabilidade** — rastreamento distribuído OpenTelemetry → Jaeger (5 serviços, incl.
    Java↔Python via `retrieval-service`); Jaeger no compose (UI :16686). + pipeline de CI
    (GitHub Actions: Java/Python/frontend). Verificado ao vivo.
-7. ⬜ Produção em nuvem — descrição/artefatos para Kubernetes (manifests YAML, sem cluster
-   obrigatório).
+7. ✅ **Produção em nuvem** — manifests Kubernetes em `k8s/` (7 serviços + infra + Jaeger + Ingress;
+   ConfigMap/Secret/PVC; `kubectl kustomize` válido, 35 recursos) + análise de evolução para nuvem
+   ([`docs/cloud-evolution.md`](docs/cloud-evolution.md)). Cluster rodando é opcional.
 8. ⬜ Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação.
 
 > **`tool-registry` (microsserviço nº 5 da spec)** ✅ — serviço remoto (8084) com **7 ferramentas**

@@ -106,3 +106,8 @@ frontend, `curl` ou Postman.
 
 Os serviços agora rodam tanto como **processos locais** (dev) quanto **em containers** (compose).
 O frontend (bônus) roda via `npm run dev` (fora do compose por ora).
+
+- **Entrega 7 — Produção em nuvem (K8s):** manifests em `k8s/` (Namespace, ConfigMap/Secret,
+  Deployments/Services dos 7 serviços + infra + Jaeger, PVCs, Ingress) reusando as imagens e a config
+  por env do Compose. `kubectl kustomize k8s/` válido (35 recursos). Análise de evolução para nuvem
+  (o que vira serviço gerenciado / o que escala) em `cloud-evolution.md`. ADR 0014.

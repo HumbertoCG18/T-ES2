@@ -24,3 +24,4 @@ criar um novo ADR que substitua o anterior.
 | [0011](0011-tool-registry-remoto.md) | tool-registry remoto; ferramentas (calculator/datetime/db_query) fora do agent-service | Aceito |
 | [0012](0012-containerizacao.md) | Containerização: Dockerfile por serviço + docker-compose completo (+ Ollama) | Aceito |
 | [0013](0013-observabilidade-tracing.md) | Observabilidade: tracing distribuído (OpenTelemetry + Jaeger) + CI (GitHub Actions) | Aceito |
+| [0014](0014-kubernetes-nuvem.md) | Produção em nuvem: manifests Kubernetes (paridade com o Compose) + evolução | Aceito |
