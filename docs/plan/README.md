@@ -22,10 +22,10 @@ delegada a **subagents**; a thread principal integra e verifica.
 
 ## Status atual (2026-06-28)
 
-**Onde estamos:** Entregas **1–4 concluídas e verificadas ao vivo**. **Os 7 microsserviços da
-spec existem** (agent-service, llm-gateway, memory-service, retrieval-service, **tool-registry**,
-api-gateway, name-server). Frontend bônus bem avançado (estilo claude.ai). Próxima entrega de
-spec = **Entrega 5 (Containerização)**.
+**Onde estamos:** Entregas **1–5 concluídas e verificadas ao vivo**. **Os 7 microsserviços da
+spec existem** e a plataforma toda sobe via **`docker compose up`** (containers + infra + Ollama).
+Frontend bônus bem avançado (estilo claude.ai). Próxima entrega de spec = **Entrega 6
+(Observabilidade + CI)**.
 
 **Feito (commitado no branch `dev-HCG`):**
 - ✅ **Entrega 1** — `agent-service` (ciclo agêntico, `/chat`) + `llm-gateway` (LiteLLM/Ollama).
@@ -37,14 +37,16 @@ spec = **Entrega 5 (Containerização)**.
   knowledge_search, unit_convert, text_stats, random). ADR 0011.
 - ✅ **Capacidades de plataforma**: rate limiting no gateway (429), toggles de memória/RAG por
   conversa + ver/limpar memória, saúde dos serviços ao vivo, upload→RAG, seletor de modelo real.
+- ✅ **Entrega 5** — containerização: Dockerfile por serviço + `docker-compose.yaml` completo
+  (7 serviços + infra + Ollama). `docker compose up` verificado in-container. ADR 0012.
 - 🔨 **Bônus frontend** — app shell estilo claude.ai: views Conversas/Projetos/Capacidades, favoritos,
   agrupamento por projeto, citar trecho, code blocks, timeline, projetos (instruções/memória/arquivos
   com barra de capacidade), configurações (fonte/tipo de resposta/instruções), excluir projeto.
 
-**Foco agora:** **Entrega 5 (Containerização)** — Dockerfile por serviço + `docker-compose.yaml`
-completo subindo a plataforma toda com um comando. Depois 6–8.
+**Foco agora:** **Entrega 6 (Observabilidade + CI)** — tracing distribuído (OpenTelemetry + Jaeger)
+e/ou métricas (Prometheus + Grafana) + pipeline de integração contínua. Depois 7–8.
 
-**Falta (spec):** Entregas 5–8 (containers, observabilidade+CI, K8s, relatório+vídeo) + não-código
+**Falta (spec):** Entregas 6–8 (observabilidade+CI, K8s, relatório+vídeo) + não-código
 (benchmarks de desempenho, discussão de riscos).
 
 ## Estado das entregas

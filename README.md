@@ -73,7 +73,10 @@ cd agent-service
 4. ✅ **Mensageria** — RabbitMQ com **dois** fluxos assíncronos: ingestão de documentos
    (`/documents/ingest` → fila → retrieval-service indexa) e telemetria (`/chat` → fila →
    memory-service persiste `telemetry_event`). Desacoplamento e resiliência verificados ao vivo.
-5. ⬜ Containerização — Dockerfiles + `docker-compose.yaml`.
+5. ✅ **Containerização** — Dockerfile por serviço (5 Spring multi-stage, 2 Python slim+uv) +
+   `docker-compose.yaml` na raiz orquestrando os 7 serviços + infra + Ollama. `docker compose up`
+   sobe a plataforma toda (config por env, descoberta por nome/`lb://`); verificado ao vivo
+   (7 imagens, 12 containers, Eureka in-container UP).
 6. ⬜ Observabilidade — OpenTelemetry + Jaeger (+ Prometheus); pipeline de CI.
 7. ⬜ Produção em nuvem — descrição/artefatos para Kubernetes (manifests YAML, sem cluster
    obrigatório).
