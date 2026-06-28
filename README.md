@@ -4,13 +4,33 @@ Trabalho Final de Engenharia de Software II. Plataforma de microsserviços para 
 agentes de IA conversacionais (ciclo **raciocínio → ação → observação**), rodando localmente
 sem dependência de nuvem. Especificação completa em [`docs/t1_2026_1.pdf`](docs/t1_2026_1.pdf).
 
-## Estado atual — Entrega 1 (Fundação)
+## Estado atual — Entregas 1–7 concluídas (dev/infra completo)
 
-Dois serviços comunicando via REST, localmente, sem containers:
+Os **7 microsserviços** da spec existem e a plataforma sobe inteira com **`docker compose up`**
+(containers + infra + Ollama + Jaeger), com tracing distribuído (OTel→Jaeger), CI (GitHub Actions)
+e manifests Kubernetes (`k8s/`). Falta só a **Entrega 8** (relatório + vídeo + apresentação,
+englobando diagrama, benchmarks e discussão de riscos).
 
-- **`llm-gateway/`** — LiteLLM expondo API OpenAI-compatível sobre o Ollama local.
-- **`agent-service/`** — Spring Boot; recebe `POST /chat`, executa o ciclo agêntico com ≥1
-  chamada ao LLM e ≥1 ferramenta (calculadora).
+| Serviço | Papel | Stack | Porta |
+|---------|-------|-------|-------|
+| `agent-service` | Ciclo agêntico (LLM + ferramentas) | Spring Boot | 8081 |
+| `llm-gateway` | Proxy p/ LLM local | LiteLLM + Ollama | 4000 |
+| `memory-service` | Memória curta (Redis) + longa (PostgreSQL) | Spring Boot | 8082 |
+| `retrieval-service` | RAG (busca semântica + ingestão) | FastAPI + ChromaDB | 8083 |
+| `tool-registry` | 7 ferramentas remotas | Spring Boot | 8084 |
+| `api-gateway` | Entrada única (roteamento + rate limit) | Spring Cloud Gateway | 8080 |
+| `name-server` | Service discovery | Eureka Server | 8761 |
+
+## Rodar tudo (Docker Compose) — recomendado
+
+```bash
+docker compose build                 # 1a vez (~minutos)
+docker compose up -d                 # sobe os 7 serviços + infra + Ollama + Jaeger
+docker compose exec ollama ollama pull llama3.1
+docker compose exec ollama ollama pull embeddinggemma:300m
+curl http://localhost:8080/chat -H "Content-Type: application/json" -d '{"message":"oi"}'
+# Eureka :8761 · RabbitMQ :15672 (guest/guest) · Jaeger :16686
+```
 
 ## Pré-requisitos
 
@@ -21,9 +41,10 @@ Dois serviços comunicando via REST, localmente, sem containers:
 | Python     | 3.11+ com [uv](https://docs.astral.sh/uv/) |
 | Ollama     | com modelo `llama3.1` baixado |
 
-## Como rodar (local)
+## Rodar em modo dev (processos locais) — alternativa
 
-Abra **3 terminais**.
+Sem containers, para iterar com hot-reload. Abra **3 terminais** (não rodar junto com o Compose —
+mesmas portas).
 
 **1. Ollama** (modelo de linguagem local)
 ```bash
@@ -99,7 +120,8 @@ Projetos / Capacidades**, favoritos (projetos e chats), agrupamento de conversas
 busca, configurações (tema, fonte, tipo de resposta, instruções), chat com markdown/LaTeX/**blocos
 de código**, **timeline** do ciclo agêntico (Pensamento vs passos), **citações**, **citar trecho**
 da resposta, editar/regenerar/copiar, anexos, projetos (instruções/memória/arquivos com **barra de
-capacidade** e excluir projeto). Verificado ao vivo com LLM real + tool calling. Status em
+capacidade** e excluir projeto), e aba **Infraestrutura** nas configurações (Entregas 4–7 visíveis,
+com link para RabbitMQ/Jaeger). Verificado ao vivo com LLM real + tool calling. Status em
 [`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
 
 Rodar o frontend (com a plataforma no ar):
@@ -117,6 +139,8 @@ npm run dev     # http://localhost:5173 (proxy /api -> gateway 8080)
 - ⬜ **Avaliação de desempenho** — experimentos/benchmarks (latência, throughput) com
   interpretação crítica dos resultados.
 - ⬜ **Discussão de riscos** — segurança, performance, escalabilidade, disponibilidade.
-- ⬜ **Análise de evolução para nuvem** + descrição das alterações para Kubernetes.
-- ⬜ **Circuit breaker demonstrado** — cenário de fallback (ex.: llm-gateway fora do ar).
+- ✅ **Análise de evolução para nuvem** + descrição das alterações para Kubernetes
+  ([`docs/cloud-evolution.md`](docs/cloud-evolution.md) + `k8s/`).
+- 🔨 **Circuit breaker demonstrado** — código pronto (fallback agent→llm-gateway/memory/retrieval);
+  falta só gravar o cenário (ex.: llm-gateway fora do ar) no vídeo.
 - ⬜ **Vídeo de demonstração** (YouTube não-listado) + apresentação final.

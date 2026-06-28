@@ -44,7 +44,8 @@ Entrega 8** (relatório técnico + vídeo + apresentação, englobando diagrama,
   (GitHub Actions). ADR 0013.
 - 🔨 **Bônus frontend** — app shell estilo claude.ai: views Conversas/Projetos/Capacidades, favoritos,
   agrupamento por projeto, citar trecho, code blocks, timeline, projetos (instruções/memória/arquivos
-  com barra de capacidade), configurações (fonte/tipo de resposta/instruções), excluir projeto.
+  com barra de capacidade), configurações (fonte/tipo de resposta/instruções + aba **Infraestrutura**
+  com Entregas 4–7 e links p/ RabbitMQ/Jaeger), excluir projeto.
 
 **Foco agora:** **Entrega 8 (final)** — relatório técnico + vídeo (YouTube não-listado) +
 apresentação. Engloba os artefatos não-código: **diagrama** de arquitetura (visual), **benchmarks de
@@ -67,7 +68,7 @@ arquitetura já estão nos **ADRs 0001–0014** (insumo direto do relatório).
 | 7 | Produção em nuvem — manifests + descrição K8s | [`07-nuvem-k8s.md`](07-nuvem-k8s.md) | ✅ Concluída (`k8s/` com 35 recursos — 7 serviços + infra + Jaeger + Ingress; `kubectl kustomize` válido; análise de evolução `cloud-evolution.md`; ADR 0014) |
 | 8 | Entrega final — relatório + vídeo + apresentação | `08-entrega-final.md` | ⬜ A planejar |
 | T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (7 ferramentas remotas: calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random; ADR 0011) |
-| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento (views Conversas/Projetos/Capacidades, favoritos, citações, toggles memória/RAG, configurações) |
+| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento (views Conversas/Projetos/Capacidades, favoritos, citações, toggles memória/RAG, configurações + aba Infraestrutura) |
 
 ## Critérios de aceite (resumo por entrega)
 
