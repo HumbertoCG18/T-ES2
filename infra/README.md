@@ -1,8 +1,11 @@
-# Infraestrutura local — Entrega 3 (Memória e RAG)
+# Infraestrutura local (modo dev)
 
-Containers de **infra** (Redis, PostgreSQL, ChromaDB). Os serviços próprios
-(`memory-service`, `retrieval-service`) rodam como **processos locais** nesta entrega —
-Dockerfiles e o `docker-compose.yaml` completo chegam na **Entrega 5**.
+Containers **só da infra** (Redis, PostgreSQL, ChromaDB, RabbitMQ) para o **modo dev** — rodar os
+serviços como processos locais com hot-reload.
+
+> Para subir a **plataforma inteira em containers** (os 7 serviços + infra + Jaeger + Ollama) use o
+> **`docker-compose.yaml` da raiz** (Entrega 5): `docker compose up -d`. Detalhes em
+> [`../docs/GUIA-DO-SISTEMA.md`](../docs/GUIA-DO-SISTEMA.md). Este compose de infra é só para o modo dev.
 
 ## Subir / derrubar (recomendado)
 

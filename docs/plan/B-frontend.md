@@ -52,8 +52,9 @@ Context + useReducer com persistência em **localStorage** (sem backend novo). P
   quando a Entrega 3 existir.
 - "Memória" do projeto no frontend é local; a memória de conversa do backend é o
   `memory-service` (Entrega 3) — integrar depois.
-- Seletor de modelo ainda é **cosmético**: a API `/chat` não recebe modelo (TODO no backend
-  para repassar ao `llm-gateway`).
+- Seletor de modelo **já está ligado ao `/chat`**: o modelo escolhido é enviado na requisição
+  (`store.runAgent` → `lib/api` `sendChat`), mapeado para o modelo lógico do `llm-gateway`. Não
+  é mais cosmético.
 
 ## Verificação
 

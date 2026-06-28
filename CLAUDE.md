@@ -4,20 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado do repositório
 
-**Entregas 1–4 concluídas (verificadas ao vivo).** Serviços: `agent-service/` (Spring Boot,
-ciclo agêntico + Eureka client + circuit breaker + memória/RAG no `/chat` + produtor RabbitMQ),
-`llm-gateway/`
-(LiteLLM/Ollama, com modelo lógico `embeddings`), `name-server/` (Eureka Server, 8761),
-`api-gateway/` (Spring Cloud Gateway, 8080), `memory-service/` (Spring Boot, Redis curto +
-PostgreSQL longo, 8082), `retrieval-service/` (FastAPI + ChromaDB, embeddings via gateway, 8083),
-`tool-registry/` (Spring Boot, ferramentas remotas calculator/datetime/db_query, 8084).
-Infra de apoio em containers: `infra/docker-compose.infra.yaml` (Redis/Postgres/ChromaDB). Bônus:
-`frontend/` (Vite + React + Tailwind + shadcn) — app shell estilo claude.ai, chat ponta-a-ponta
-com LLM real e `conversationId`; em expansão (ver `docs/plan/B-frontend.md`). O `tool-registry`
-remoto foi entregue (microsserviço nº 5; ADR 0011). Faltam Entregas 5–8. **Sempre conferir
-`docs/plan/README.md`** para o estado atual e o que falta. Arquitetura-alvo na spec
-(`docs/t1_2026_1.pdf`). ADRs novos: 0007 (memória 2 níveis), 0008 (retrieval Python + discovery),
-0009 (injeção RAG), 0010 (mensageria RabbitMQ: ingestão async + telemetria), 0011 (tool-registry remoto).
+**Entregas 1–7 concluídas e verificadas ao vivo. Falta só a Entrega 8** (relatório técnico +
+vídeo + apresentação — documentação, sem código). Os **7 microsserviços** existem: `agent-service/`
+(Spring Boot, ciclo agêntico + Eureka + circuit breaker + memória/RAG no `/chat` + produtor
+RabbitMQ + tracing), `llm-gateway/` (LiteLLM/Ollama, modelo lógico `embeddings`), `name-server/`
+(Eureka, 8761), `api-gateway/` (Spring Cloud Gateway, 8080, rate limiting), `memory-service/`
+(Redis curto + PostgreSQL longo + consumidor de telemetria, 8082), `retrieval-service/` (FastAPI +
+ChromaDB + consumidor de ingestão + tracing, 8083), `tool-registry/` (Spring, **7 ferramentas**,
+8084). **A plataforma toda sobe com `docker compose up`** (`docker-compose.yaml` na raiz, Entrega 5):
+7 serviços + infra (Redis/Postgres/ChromaDB/RabbitMQ) + **Jaeger** + Ollama. Observabilidade
+(Entrega 6): tracing **OpenTelemetry → Jaeger** + **CI** (`.github/workflows/ci.yml`). Produção em
+nuvem (Entrega 7): manifests **Kubernetes** em `k8s/` + `docs/cloud-evolution.md`. Bônus: `frontend/`
+(Vite + React + Tailwind) — cliente estilo claude.ai, **polido em 3 passes** (ver `docs/plan/B-frontend.md`).
+**Sempre conferir `docs/plan/README.md`** para o estado. Onboarding completo em
+`docs/GUIA-DO-SISTEMA.md`; roteiro da Entrega 8 em `docs/plan/08-entrega-final.md`. Arquitetura-alvo
+na spec (`docs/t1_2026_1.pdf`). ADRs: 0001–0014 (memória, retrieval, RAG, mensageria, tool-registry,
+containerização, observabilidade, K8s).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +
@@ -133,8 +135,12 @@ projeto isolado, com seu próprio build, Dockerfile e ciclo de deploy:
   `ollama list`. Endpoint local: `http://localhost:11434`.
 - **Smoke test do ciclo agêntico:**
   `curl http://localhost:8081/chat -H "Content-Type: application/json" -d '{"message":"Quanto e (12 + 8) * 3?"}'`
-- **Stack completa:** `docker compose up` (ainda não existe — `docker-compose.yaml` chega na
-  Entrega 5).
+- **Stack completa (Entrega 5):** `docker compose build` + `docker compose up -d` (raiz) sobe os 7
+  serviços + infra (Redis/Postgres/ChromaDB/RabbitMQ) + Jaeger + Ollama. Depois,
+  `docker compose exec ollama ollama pull llama3.1` e `embeddinggemma:300m`. Eureka :8761 ·
+  RabbitMQ :15672 (guest/guest) · Jaeger :16686. Detalhes em `docs/GUIA-DO-SISTEMA.md` / `docs/runbook.md`.
+- **Kubernetes (Entrega 7):** manifests em `k8s/` — `kubectl kustomize k8s/` valida; `kubectl apply -k k8s/`
+  num cluster (opcional). Ver `k8s/README.md` e `docs/cloud-evolution.md`.
 - **Serviços Python/FastAPI futuros:** `uv run uvicorn app.main:app --reload` / `uv run pytest`.
 
 ## Método de trabalho (Sub-Agent Driven Development)

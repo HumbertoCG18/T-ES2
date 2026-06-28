@@ -1,6 +1,6 @@
 # Plano — Entrega 4: Mensageria (RabbitMQ)
 
-**Status:** A planejar · **Atualizado:** 2026-06-27
+**Status:** ✅ Concluída (verificada ao vivo) · **Atualizado:** 2026-06-27
 
 ## Objetivo
 

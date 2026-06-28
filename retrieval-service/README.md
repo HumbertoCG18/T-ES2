@@ -1,11 +1,14 @@
 # retrieval-service
 
-Busca semântica em documentos (**RAG**) da plataforma — Entrega 3.
+Busca semântica em documentos (**RAG**) da plataforma.
 
-- **Stack:** Python (FastAPI) + **ChromaDB** (container, `HttpClient`) + embeddings via **llm-gateway**.
+- **Stack:** Python (FastAPI) + **ChromaDB** (`HttpClient`) + embeddings via **llm-gateway**.
 - **Porta:** 8083. **Nome lógico (Eureka):** `retrieval-service`.
 - **Embeddings:** sempre via `llm-gateway` (`POST /v1/embeddings`, modelo lógico `embeddings` =
   `embeddinggemma:300m`, 768 dims). **Nunca** provedor de nuvem.
+- Também **consome a fila de ingestão assíncrona** `document.ingest` (RabbitMQ, Entrega 4) e
+  **exporta tracing** OpenTelemetry → Jaeger (Entrega 6). Tem `Dockerfile` e roda no
+  `docker-compose.yaml` da raiz (Entrega 5).
 
 ## Rodar (uv)
 
@@ -22,12 +25,12 @@ Smoke: `curl http://localhost:8083/health` → `{"status":"UP","service":"retrie
 
 ## Endpoints (contratos)
 
-| Método | Rota                  | Descrição                                    | Entrega |
-|--------|-----------------------|----------------------------------------------|---------|
-| GET    | `/health`             | liveness                                     | T5 ✅   |
-| POST   | `/ingest`             | `{docId, projectId, text, metadata?}` → chunk+embed+upsert | T6 |
-| POST   | `/search`             | `{query, topK?, projectId?}` → embed+query   | T6      |
-| DELETE | `/documents/{docId}`  | remove chunks do doc (opcional)              | T6      |
+| Método | Rota                  | Descrição                                    |
+|--------|-----------------------|----------------------------------------------|
+| GET    | `/health`             | liveness                                     |
+| POST   | `/ingest`             | `{docId, projectId, text, metadata?}` → chunk+embed+upsert |
+| POST   | `/search`             | `{query, topK?, projectId?}` → embed+query   |
+| DELETE | `/documents/{docId}`  | remove chunks do doc                         |
 
 ## Config (env)
 

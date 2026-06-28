@@ -1,6 +1,6 @@
 # Plano — Entrega 5: Containerização
 
-**Status:** A planejar · **Atualizado:** 2026-06-28
+**Status:** ✅ Concluída (verificada ao vivo) · **Atualizado:** 2026-06-28
 
 ## Objetivo
 
