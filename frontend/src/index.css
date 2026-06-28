@@ -20,6 +20,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-user-bubble: var(--user-bubble);
 
+  /* Cores semânticas (estados): destrutivo / sucesso / aviso. */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
   --font-mono: var(--font-mono);
@@ -52,6 +58,12 @@ html[data-font="mono"] {
   --accent: #c96442; /* coral / terracota */
   --accent-foreground: #ffffff;
   --user-bubble: #f1ebe3;
+
+  /* Estados — hues quentes, coerentes com a paleta de código. */
+  --destructive: #b4402e;
+  --destructive-foreground: #ffffff;
+  --success: #4f7a3a;
+  --warning: #9a5b1e;
 
   /* Blocos de código (highlight.js) — tons quentes na paleta clara. */
   --code-bg: #f4f1ea;
@@ -91,6 +103,12 @@ html[data-font="mono"] {
   --accent: #d2785a;
   --accent-foreground: #ffffff;
   --user-bubble: #322e29;
+
+  /* Estados (escuro) — versões mais claras p/ legibilidade sobre fundo escuro. */
+  --destructive: #e0735a;
+  --destructive-foreground: #2a1410;
+  --success: #9fcf86;
+  --warning: #e8b07a;
 
   /* Blocos de código — versão escura, legível sobre --code-bg. */
   --code-bg: #1b1a17;

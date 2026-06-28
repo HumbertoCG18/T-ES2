@@ -2,6 +2,7 @@ import { useStore } from "@/store/store"
 import { Composer } from "./Composer"
 import { EmptyState } from "./EmptyState"
 import { MessageList } from "./MessageList"
+import { SuggestionChips } from "./SuggestionChips"
 import { TopBar } from "./TopBar"
 
 interface ChatViewProps {
@@ -31,6 +32,7 @@ export function ChatView({ collapsed, onExpand, onOpenMobile }: ChatViewProps) {
             <div className="mt-8">
               <Composer onSend={sendMessage} disabled={isLoading} autoFocus />
             </div>
+            <SuggestionChips />
           </div>
         </main>
       ) : (

@@ -109,7 +109,7 @@ export function ProjectFiles({ project }: { project: Project }) {
             <div className="mb-3">
               <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Capacidade do conhecimento</span>
-                <span className={cn("tabular-nums", warn ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+                <span className={cn("tabular-nums", warn ? "text-warning" : "text-muted-foreground")}>
                   {Math.round(pct)}% · {formatBytes(used)} / {formatBytes(PROJECT_KNOWLEDGE_LIMIT)}
                 </span>
               </div>
@@ -168,7 +168,7 @@ export function ProjectFiles({ project }: { project: Project }) {
       {storageError && (
         <p
           role="alert"
-          className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300"
+          className="mt-3 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning"
         >
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Não foi possível salvar tudo no navegador (limite de armazenamento).
@@ -207,7 +207,7 @@ export function ProjectFiles({ project }: { project: Project }) {
                   type="button"
                   onClick={() => removeProjectFile(project.id, file.id)}
                   aria-label={`Remover ${file.name}`}
-                  className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 outline-none transition hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent group-hover:opacity-100 dark:hover:text-red-400"
+                  className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 outline-none transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent group-hover:opacity-100"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>

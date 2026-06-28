@@ -211,11 +211,11 @@ export function ProjectView({
                   Cancelar
                 </Button>
                 <Button
+                  variant="dangerSolid"
                   onClick={() => {
                     deleteProject(project.id)
                     setConfirmOpen(false)
                   }}
-                  className="bg-red-600 text-white hover:bg-red-700"
                 >
                   Excluir
                 </Button>

@@ -136,7 +136,7 @@ export function ConversationOptions() {
               <Button
                 variant="ghost"
                 onClick={clear}
-                className="text-red-600 dark:text-red-400"
+                className="text-destructive"
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                 Limpar memória

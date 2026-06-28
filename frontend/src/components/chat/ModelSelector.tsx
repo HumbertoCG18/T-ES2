@@ -26,7 +26,7 @@ export function ModelSelector() {
         className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
         aria-label="Selecionar modelo"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
         {current}
         <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
       </DropdownMenuTrigger>

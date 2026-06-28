@@ -195,8 +195,8 @@ export function CapabilitiesView({
                       <span className="min-w-0 flex-1 truncate font-mono text-sm text-foreground">
                         {s.name.toLowerCase()}
                       </span>
-                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-success">
+                        <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
                         UP
                       </span>
                       <span className="shrink-0 text-xs tabular-nums text-muted-foreground">

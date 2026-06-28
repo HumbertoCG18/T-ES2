@@ -119,7 +119,7 @@ export function RecentsView({ collapsed, onExpand, onOpenMobile }: RecentsViewPr
                     variant="ghost"
                     onClick={deleteSelected}
                     disabled={selected.size === 0}
-                    className="text-red-600 dark:text-red-400"
+                    className="text-destructive"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                     Excluir ({selected.size})

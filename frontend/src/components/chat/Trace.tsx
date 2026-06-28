@@ -14,7 +14,7 @@ function StepIcon({ kind }: { kind: TraceStep["kind"] }) {
   }
   if (kind === "final") {
     return (
-      <span className="relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      <span className="relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-success/30 bg-success/10 text-success">
         <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />
       </span>
     )

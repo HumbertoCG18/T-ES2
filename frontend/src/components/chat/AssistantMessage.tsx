@@ -1,5 +1,6 @@
-import { Check, Copy, RefreshCw } from "lucide-react"
+import { AlertTriangle, Check, Copy, RefreshCw } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { useCopy } from "@/lib/useCopy"
 import { useStore } from "@/store/store"
 import type { ChatMessage } from "@/store/types"
@@ -54,9 +55,28 @@ export function AssistantMessage({
       {message.pending ? (
         <ThinkingDots />
       ) : message.error ? (
-        <p className="text-[0.95rem] leading-[1.7] text-muted-foreground">
-          {message.content}
-        </p>
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/[0.06] px-3.5 py-2.5 text-[0.95rem] leading-[1.6] text-foreground">
+            <AlertTriangle
+              className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+              aria-hidden="true"
+            />
+            <span>{message.content}</span>
+          </div>
+          {isLast && (
+            <div>
+              <Button
+                variant="secondary"
+                onClick={() => regenerateLast(conversationId)}
+                disabled={isLoading}
+                className="h-8 px-3 text-xs"
+              >
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+        </div>
       ) : (
         // data-quotable: habilita "Citar" ao selecionar trecho desta resposta.
         <div data-quotable>

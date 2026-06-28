@@ -24,7 +24,7 @@ export function SidebarFooter() {
 
       <div className="flex items-center gap-1.5 px-2.5 pb-0.5 pt-1.5 text-xs text-muted-foreground">
         <span
-          className="h-1.5 w-1.5 rounded-full bg-emerald-500"
+          className="h-1.5 w-1.5 rounded-full bg-success"
           aria-hidden="true"
         />
         Modelo:

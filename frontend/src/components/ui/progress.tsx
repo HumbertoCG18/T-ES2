@@ -25,7 +25,7 @@ export function Progress({
       <div
         className={cn(
           "h-full rounded-full transition-[width] duration-300",
-          tone === "warning" ? "bg-amber-500" : "bg-accent",
+          tone === "warning" ? "bg-warning" : "bg-accent",
         )}
         style={{ width: `${pct}%` }}
       />

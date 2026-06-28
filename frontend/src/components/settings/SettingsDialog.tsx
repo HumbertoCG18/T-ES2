@@ -157,20 +157,20 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
         </DialogHeader>
 
         <Tabs defaultValue="geral">
-          <TabsList className="w-full">
-            <TabsTrigger value="geral" className="flex-1">
+          <TabsList className="w-full overflow-x-auto">
+            <TabsTrigger value="geral" className="flex-1 shrink-0 min-w-fit">
               Geral
             </TabsTrigger>
-            <TabsTrigger value="perfil" className="flex-1">
+            <TabsTrigger value="perfil" className="flex-1 shrink-0 min-w-fit">
               Personalização
             </TabsTrigger>
-            <TabsTrigger value="modelo" className="flex-1">
+            <TabsTrigger value="modelo" className="flex-1 shrink-0 min-w-fit">
               Modelo
             </TabsTrigger>
-            <TabsTrigger value="infra" className="flex-1">
+            <TabsTrigger value="infra" className="flex-1 shrink-0 min-w-fit">
               Infraestrutura
             </TabsTrigger>
-            <TabsTrigger value="sobre" className="flex-1">
+            <TabsTrigger value="sobre" className="flex-1 shrink-0 min-w-fit">
               Sobre
             </TabsTrigger>
           </TabsList>

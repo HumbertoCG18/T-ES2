@@ -10,6 +10,7 @@ import { ArrowUp, Paperclip, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip } from "@/components/ui/tooltip"
+import { composerBus } from "@/lib/composerBus"
 import { formatBytes, readComposerAttachments } from "@/lib/files"
 import { quoteBus } from "@/lib/quoteBus"
 import type { ComposerAttachment } from "@/store/types"
@@ -39,6 +40,20 @@ export function Composer({ onSend, disabled, autoFocus }: ComposerProps) {
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus()
   }, [autoFocus])
+
+  // Chips de sugestão (tela inicial): substituem o texto e focam, cursor ao fim.
+  useEffect(() => {
+    return composerBus.subscribe((text) => {
+      setValue(text)
+      const el = textareaRef.current
+      if (el) {
+        el.focus()
+        requestAnimationFrame(() => {
+          el.selectionStart = el.selectionEnd = el.value.length
+        })
+      }
+    })
+  }, [])
 
   // "Citar trecho": insere o texto selecionado como citação Markdown e foca o composer.
   useEffect(() => {
