@@ -4,6 +4,9 @@ Trabalho Final de Engenharia de Software II. Plataforma de microsserviços para 
 agentes de IA conversacionais (ciclo **raciocínio → ação → observação**), rodando localmente
 sem dependência de nuvem. Especificação completa em [`docs/t1_2026_1.pdf`](docs/t1_2026_1.pdf).
 
+> **Novo no projeto?** Comece pelo [**Guia do Sistema**](docs/GUIA-DO-SISTEMA.md) — explica o que é,
+> o que foi construído, o que instalar e como rodar, do zero.
+
 ## Estado atual — Entregas 1–7 concluídas (dev/infra completo)
 
 Os **7 microsserviços** da spec existem e a plataforma sobe inteira com **`docker compose up`**
@@ -104,7 +107,8 @@ cd agent-service
 7. ✅ **Produção em nuvem** — manifests Kubernetes em `k8s/` (7 serviços + infra + Jaeger + Ingress;
    ConfigMap/Secret/PVC; `kubectl kustomize` válido, 35 recursos) + análise de evolução para nuvem
    ([`docs/cloud-evolution.md`](docs/cloud-evolution.md)). Cluster rodando é opcional.
-8. ⬜ Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação.
+8. 🔨 Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação. Roteiro passo
+   a passo em [`docs/plan/08-entrega-final.md`](docs/plan/08-entrega-final.md).
 
 > **`tool-registry` (microsserviço nº 5 da spec)** ✅ — serviço remoto (8084) com **7 ferramentas**
 > (calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random); o
@@ -121,7 +125,8 @@ busca, configurações (tema, fonte, tipo de resposta, instruções), chat com m
 de código**, **timeline** do ciclo agêntico (Pensamento vs passos), **citações**, **citar trecho**
 da resposta, editar/regenerar/copiar, anexos, projetos (instruções/memória/arquivos com **barra de
 capacidade** e excluir projeto), e aba **Infraestrutura** nas configurações (Entregas 4–7 visíveis,
-com link para RabbitMQ/Jaeger). Verificado ao vivo com LLM real + tool calling. Status em
+com link para RabbitMQ/Jaeger). **Polido em 3 passes** (design tokens semânticos, estados/skeletons,
+mobile/a11y, **logomark próprio**). Verificado ao vivo com LLM real + tool calling. Status em
 [`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
 
 Rodar o frontend (com a plataforma no ar):
