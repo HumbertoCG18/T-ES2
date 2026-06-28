@@ -1,5 +1,15 @@
 import { useState, type ReactNode } from "react"
-import { Monitor, Moon, Sun } from "lucide-react"
+import {
+  Boxes,
+  ExternalLink,
+  Monitor,
+  Moon,
+  Repeat,
+  Server,
+  Sun,
+  Telescope,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import {
@@ -22,6 +32,45 @@ import {
 } from "@/store/types"
 
 const APP_VERSION = "1.0.0"
+
+/** Entregas de infraestrutura (4–7) — visíveis aqui, com link para a UI quando houver. */
+const INFRA: {
+  entrega: number
+  icon: LucideIcon
+  title: string
+  desc: string
+  url?: string
+  linkLabel?: string
+}[] = [
+  {
+    entrega: 4,
+    icon: Repeat,
+    title: "Mensageria assíncrona",
+    desc: "RabbitMQ desacopla ingestão de documentos e telemetria do caminho do /chat.",
+    url: "http://localhost:15672",
+    linkLabel: "Painel do RabbitMQ",
+  },
+  {
+    entrega: 5,
+    icon: Boxes,
+    title: "Containerização",
+    desc: "Dockerfile por serviço + docker-compose.yaml: toda a plataforma sobe com “docker compose up”.",
+  },
+  {
+    entrega: 6,
+    icon: Telescope,
+    title: "Observabilidade",
+    desc: "Rastreamento distribuído (OpenTelemetry → Jaeger): um pedido visto atravessando os serviços.",
+    url: "http://localhost:16686",
+    linkLabel: "Abrir o Jaeger",
+  },
+  {
+    entrega: 7,
+    icon: Server,
+    title: "Produção em nuvem (Kubernetes)",
+    desc: "Manifests K8s (pasta k8s/) + análise de evolução para nuvem. Cluster rodando é opcional.",
+  },
+]
 
 const THEME_OPTIONS: { value: ThemePref; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Claro", icon: Sun },
@@ -117,6 +166,9 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
             </TabsTrigger>
             <TabsTrigger value="modelo" className="flex-1">
               Modelo
+            </TabsTrigger>
+            <TabsTrigger value="infra" className="flex-1">
+              Infraestrutura
             </TabsTrigger>
             <TabsTrigger value="sobre" className="flex-1">
               Sobre
@@ -274,6 +326,46 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
               Salvo localmente. Observação: a API atual ainda não recebe o
               modelo selecionado.
             </p>
+          </TabsContent>
+
+          {/* ---------- Infraestrutura ---------- */}
+          <TabsContent value="infra">
+            <p className="mb-3 text-sm text-muted-foreground">
+              Capacidades de infraestrutura da plataforma (Entregas 4–7). Os links abrem a
+              interface do serviço (precisa estar no ar, ex.: via <code>docker compose up</code>).
+            </p>
+            <div className="flex flex-col gap-2">
+              {INFRA.map(({ entrega, icon: Icon, title, desc, url, linkLabel }) => (
+                <div
+                  key={entrega}
+                  className="flex items-start gap-3 rounded-xl border border-border bg-card p-3"
+                >
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/[0.04] text-foreground/80">
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">{title}</span>
+                      <span className="rounded-md bg-accent/10 px-1.5 py-0.5 text-[0.65rem] font-medium text-accent">
+                        Entrega {entrega}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+                    {url && (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                        {linkLabel}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </TabsContent>
 
           {/* ---------- Sobre ---------- */}
