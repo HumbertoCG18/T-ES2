@@ -171,12 +171,21 @@ public class AgentLoop {
         return new AgentResult(finalReply, trace, citations);
     }
 
-    // Palavras-chave que sugerem necessidade de ferramenta (datetime / db_query).
+    // Palavras-chave que sugerem necessidade de alguma ferramenta do tool-registry.
     private static final String[] TOOL_HINTS = {
+            // datetime / db_query
             "hora", "horas", "data", "dia", "hoje", "agora", "ontem", "amanha", "amanhã",
             "prazo", "quando", "calcul", "soma", "media", "média", "total",
             "quant", "banco", "dados", "consulta", "telemetria", "historico", "histórico",
-            "registro", "mensagens", "conversa"
+            "registro", "mensagens", "conversa",
+            // unit_convert
+            "convert", "converta", "milha", "km", "kg", "grama", "libra", "metro", "celsius", "fahrenheit",
+            // random
+            "sorte", "sorteie", "sortear", "escolh", "aleat", "dado",
+            // text_stats
+            "palavra", "caracter", "texto", "linha",
+            // knowledge_search
+            "documento", "conhecimento", "busca", "procure", "pesquise"
     };
 
     /**

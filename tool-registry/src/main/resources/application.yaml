@@ -13,6 +13,10 @@ spring:
       maximum-pool-size: 3
       minimum-idle: 0
 
+# retrieval-service para a ferramenta knowledge_search (lb:// ou http://host:porta).
+retrieval:
+  base-url: ${RETRIEVAL_URL:lb://retrieval-service}
+
 server:
   port: 8084
 
