@@ -229,4 +229,3 @@ T-ES2/
 - **Contagem de fila no RabbitMQ:** o painel tem ~5s de atraso; a contagem autoritativa é
   `docker exec rabbitmq rabbitmqctl list_queues name messages consumers`.
 - Mais comandos e detalhes em [`docs/runbook.md`](runbook.md).
-```
