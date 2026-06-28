@@ -33,15 +33,16 @@ public class LlmClient {
         this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
-    public ChatMessage complete(List<ChatMessage> messages, List<ToolSpec> tools) {
+    public ChatMessage complete(List<ChatMessage> messages, List<ToolSpec> tools, String model) {
         return circuitBreakerFactory.create(CB_NAME).run(
-                () -> doComplete(messages, tools),
+                () -> doComplete(messages, tools, model),
                 this::completeFallback);
     }
 
-    private ChatMessage doComplete(List<ChatMessage> messages, List<ToolSpec> tools) {
+    private ChatMessage doComplete(List<ChatMessage> messages, List<ToolSpec> tools, String model) {
+        String effectiveModel = (model == null || model.isBlank()) ? props.model() : model;
         ChatCompletionRequest request =
-                new ChatCompletionRequest(props.model(), messages, tools, props.temperature());
+                new ChatCompletionRequest(effectiveModel, messages, tools, props.temperature());
         ChatCompletionResponse response = client.post()
                 .uri("/v1/chat/completions")
                 .body(request)

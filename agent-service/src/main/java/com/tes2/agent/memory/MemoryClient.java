@@ -53,6 +53,38 @@ public class MemoryClient {
                 .toList();
     }
 
+    /** Histórico completo (sempre Postgres) para inspeção na UI. Fallback: lista vazia. */
+    public List<MemoryMessage> history(String conversationId) {
+        return circuitBreakerFactory.create(CB_NAME).run(
+                () -> {
+                    RecentResponse resp = client.get()
+                            .uri("/conversations/{id}/history", conversationId)
+                            .retrieve()
+                            .body(RecentResponse.class);
+                    return (resp == null || resp.messages() == null) ? List.<MemoryMessage>of() : resp.messages();
+                },
+                t -> {
+                    log.warn("Falha ao carregar memória (cid={}): {}", conversationId, t.toString());
+                    return List.of();
+                });
+    }
+
+    /** Limpa a memória da conversa (Redis + Postgres). Fallback: pula silenciosamente. */
+    public void clear(String conversationId) {
+        circuitBreakerFactory.create(CB_NAME).run(
+                () -> {
+                    client.delete()
+                            .uri("/conversations/{id}", conversationId)
+                            .retrieve()
+                            .toBodilessEntity();
+                    return null;
+                },
+                t -> {
+                    log.warn("Falha ao limpar memória (cid={}): {}", conversationId, t.toString());
+                    return null;
+                });
+    }
+
     /** Persiste o turno (user + assistant final). Fallback: pula silenciosamente. */
     public void appendTurn(String conversationId, String userMessage, String assistantReply) {
         circuitBreakerFactory.create(CB_NAME).run(

@@ -2,6 +2,12 @@ spring:
   application:
     name: api-gateway
 
+  # Redis para o rate limiter (token bucket) do gateway. Container de infra.
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
 server:
   port: 8080
 

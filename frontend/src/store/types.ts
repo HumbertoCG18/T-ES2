@@ -18,12 +18,21 @@ export interface ComposerAttachment extends Attachment {
   text?: string
 }
 
+/** Trecho de documento usado pelo RAG (fonte da resposta). */
+export interface Citation {
+  text: string
+  score: number
+  docId: string
+}
+
 export interface ChatMessage {
   id: string
   role: Role
   content: string
   /** Passos do ciclo agêntico (raciocínio → ação → observação). */
   trace?: string[]
+  /** Trechos de documentos (RAG) usados como contexto desta resposta. */
+  citations?: Citation[]
   /** Placeholder "pensando" enquanto aguarda a resposta. */
   pending?: boolean
   /** Resposta foi uma mensagem de erro da interface. */
@@ -41,6 +50,10 @@ export interface Conversation {
   updatedAt: number
   /** Conversa fixada nos Favoritos da sidebar. */
   favorite?: boolean
+  /** Toggle de memória por conversa (undefined = ligado). */
+  useMemory?: boolean
+  /** Toggle de RAG por conversa (undefined = ligado). */
+  useRag?: boolean
 }
 
 /**
@@ -82,6 +95,12 @@ export const MODELS: { id: ModelId; label: string }[] = [
   { id: "llama3.1", label: "llama3.1" },
   { id: "gemma3:4b", label: "gemma3:4b" },
 ]
+
+/** Mapa do modelo (UI) → nome lógico no llm-gateway (config.yaml do LiteLLM). */
+export const MODEL_TO_GATEWAY: Record<ModelId, string> = {
+  "llama3.1": "chat",
+  "gemma3:4b": "chat-light",
+}
 
 /** Fonte da interface. */
 export type FontPref = "sans" | "serif" | "mono"

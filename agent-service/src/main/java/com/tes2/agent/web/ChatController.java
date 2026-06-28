@@ -2,6 +2,7 @@ package com.tes2.agent.web;
 
 import com.tes2.agent.agent.AgentLoop;
 import com.tes2.agent.agent.AgentResult;
+import com.tes2.agent.agent.Citation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
@@ -27,13 +28,26 @@ public class ChatController {
         String conversationId = (request.conversationId() == null || request.conversationId().isBlank())
                 ? UUID.randomUUID().toString()
                 : request.conversationId();
-        AgentResult result = agentLoop.run(conversationId, request.message());
-        return new ChatResponse(conversationId, result.reply(), result.trace());
+        // Toggles por conversa: ausentes => ligados (comportamento padrão).
+        boolean useMemory = request.useMemory() == null || request.useMemory();
+        boolean useRag = request.useRag() == null || request.useRag();
+
+        AgentResult result = agentLoop.run(conversationId, request.message(), request.model(), useMemory, useRag);
+        return new ChatResponse(conversationId, result.reply(), result.trace(), result.citations());
     }
 
-    public record ChatRequest(@NotBlank String message, String conversationId) {
+    public record ChatRequest(
+            @NotBlank String message,
+            String conversationId,
+            String model,
+            Boolean useMemory,
+            Boolean useRag) {
     }
 
-    public record ChatResponse(String conversationId, String reply, List<String> trace) {
+    public record ChatResponse(
+            String conversationId,
+            String reply,
+            List<String> trace,
+            List<Citation> citations) {
     }
 }

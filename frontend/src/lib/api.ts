@@ -1,26 +1,39 @@
+import type { Citation } from "@/store/types"
+
 export interface ChatResponse {
   reply: string
   trace: string[]
   conversationId?: string
+  citations: Citation[]
+}
+
+export interface ChatOptions {
+  conversationId?: string
+  /** Nome lógico do modelo no llm-gateway (ex.: "chat", "chat-light"). */
+  model?: string
+  useMemory?: boolean
+  useRag?: boolean
 }
 
 /**
- * Envia uma mensagem para a plataforma de agentes.
- * Passa o `conversationId` da conversa ativa para ativar memória/RAG por conversa
- * (Entrega 3). Sem ele, o backend gera um id stateless (back-compat).
- * Lança em caso de falha de rede ou resposta inválida, para que a UI
- * possa exibir uma mensagem amigável.
+ * Envia uma mensagem para a plataforma de agentes. Passa conversationId, modelo e os toggles
+ * de memória/RAG da conversa. Sem conversationId, o backend gera um id stateless (back-compat).
  */
-export async function sendChat(message: string, conversationId?: string): Promise<ChatResponse> {
+export async function sendChat(message: string, opts: ChatOptions = {}): Promise<ChatResponse> {
+  const body: Record<string, unknown> = { message }
+  if (opts.conversationId) body.conversationId = opts.conversationId
+  if (opts.model) body.model = opts.model
+  if (opts.useMemory === false) body.useMemory = false
+  if (opts.useRag === false) body.useRag = false
+
   let res: Response
   try {
     res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(conversationId ? { message, conversationId } : { message }),
+      body: JSON.stringify(body),
     })
   } catch {
-    // Falha de rede (serviço fora do ar, DNS, etc.)
     throw new Error("network_error")
   }
 
@@ -33,7 +46,30 @@ export async function sendChat(message: string, conversationId?: string): Promis
     reply: typeof data.reply === "string" ? data.reply : "",
     trace: Array.isArray(data.trace) ? data.trace : [],
     conversationId: typeof data.conversationId === "string" ? data.conversationId : undefined,
+    citations: Array.isArray(data.citations) ? data.citations : [],
   }
+}
+
+/** Mensagem persistida na memória (role + content). */
+export interface MemoryMessage {
+  role: string
+  content: string
+}
+
+/** Histórico durável de uma conversa (via /api/memory/{id} → memory-service). */
+export async function fetchMemory(conversationId: string): Promise<MemoryMessage[]> {
+  const res = await fetch(`/api/memory/${encodeURIComponent(conversationId)}`)
+  if (!res.ok) throw new Error(`http_error_${res.status}`)
+  const data = (await res.json()) as unknown
+  return Array.isArray(data) ? (data as MemoryMessage[]) : []
+}
+
+/** Limpa a memória (Redis + Postgres) de uma conversa. */
+export async function clearMemory(conversationId: string): Promise<void> {
+  const res = await fetch(`/api/memory/${encodeURIComponent(conversationId)}`, {
+    method: "DELETE",
+  })
+  if (!res.ok) throw new Error(`http_error_${res.status}`)
 }
 
 /** Parâmetro de uma ferramenta (subset do JSON Schema). */

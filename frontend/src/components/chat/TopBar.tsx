@@ -4,6 +4,7 @@ import { FolderClosed, Menu, PanelLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip } from "@/components/ui/tooltip"
 import { useStore } from "@/store/store"
+import { ConversationOptions } from "./ConversationOptions"
 import { ModelSelector } from "./ModelSelector"
 
 function EditableTitle() {
@@ -121,6 +122,7 @@ export function TopBar({ collapsed, onExpand, onOpenMobile }: TopBarProps) {
         <EditableTitle />
       </div>
 
+      <ConversationOptions />
       <ModelSelector />
     </header>
   )

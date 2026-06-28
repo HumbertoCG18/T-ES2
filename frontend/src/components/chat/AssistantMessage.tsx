@@ -3,6 +3,7 @@ import { Check, Copy, RefreshCw } from "lucide-react"
 import { useCopy } from "@/lib/useCopy"
 import { useStore } from "@/store/store"
 import type { ChatMessage } from "@/store/types"
+import { Citations } from "./Citations"
 import { Markdown } from "./Markdown"
 import { MessageActionButton } from "./MessageActionButton"
 import { Trace } from "./Trace"
@@ -65,6 +66,10 @@ export function AssistantMessage({
 
       {message.trace && message.trace.length > 0 && (
         <Trace trace={message.trace} />
+      )}
+
+      {message.citations && message.citations.length > 0 && (
+        <Citations citations={message.citations} />
       )}
 
       {showActions && (

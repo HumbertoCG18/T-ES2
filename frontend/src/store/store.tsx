@@ -16,6 +16,7 @@ import { newId } from "@/lib/id"
 import type {
   AppState,
   ChatMessage,
+  Citation,
   ComposerAttachment,
   Conversation,
   ModelId,
@@ -25,6 +26,7 @@ import type {
   ThemePref,
   View,
 } from "./types"
+import { MODEL_TO_GATEWAY } from "./types"
 
 const STORAGE_KEY = "plataforma-agentes/v1"
 
@@ -58,12 +60,15 @@ type Action =
       messageId: string
       content: string
       trace?: string[]
+      citations?: Citation[]
       error?: boolean
     }
   | { type: "RENAME_CONVERSATION"; id: string; title: string }
   | { type: "DELETE_CONVERSATION"; id: string }
   | { type: "MOVE_CONVERSATION"; id: string; projectId: string | null }
   | { type: "TOGGLE_CONVERSATION_FAVORITE"; id: string }
+  | { type: "TOGGLE_CONVERSATION_MEMORY"; id: string }
+  | { type: "TOGGLE_CONVERSATION_RAG"; id: string }
   | { type: "TOGGLE_PROJECT_FAVORITE"; id: string }
   | { type: "CREATE_PROJECT"; project: Project }
   | {
@@ -94,6 +99,23 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         conversations: state.conversations.map((c) =>
           c.id === action.id ? { ...c, favorite: !c.favorite } : c,
+        ),
+      }
+
+    case "TOGGLE_CONVERSATION_MEMORY":
+      return {
+        ...state,
+        conversations: state.conversations.map((c) =>
+          // undefined/true = ligado; alterna para desligado e vice-versa.
+          c.id === action.id ? { ...c, useMemory: c.useMemory === false } : c,
+        ),
+      }
+
+    case "TOGGLE_CONVERSATION_RAG":
+      return {
+        ...state,
+        conversations: state.conversations.map((c) =>
+          c.id === action.id ? { ...c, useRag: c.useRag === false } : c,
         ),
       }
 
@@ -149,6 +171,7 @@ function reducer(state: AppState, action: Action): AppState {
                         ...m,
                         content: action.content,
                         trace: action.trace,
+                        citations: action.citations,
                         error: action.error,
                         pending: false,
                       }
@@ -358,6 +381,8 @@ interface StoreValue {
   showRecents: () => void
   showProjectsList: () => void
   toggleConversationFavorite: (id: string) => void
+  toggleConversationMemory: (id: string) => void
+  toggleConversationRag: (id: string) => void
   toggleProjectFavorite: (id: string) => void
   sendMessage: (text: string, attachments?: ComposerAttachment[]) => void
   editAndResend: (convId: string, messageIndex: number, newContent: string) => void
@@ -467,28 +492,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "TOGGLE_CONVERSATION_FAVORITE", id })
   }, [])
 
+  const toggleConversationMemory = useCallback((id: string) => {
+    dispatch({ type: "TOGGLE_CONVERSATION_MEMORY", id })
+  }, [])
+
+  const toggleConversationRag = useCallback((id: string) => {
+    dispatch({ type: "TOGGLE_CONVERSATION_RAG", id })
+  }, [])
+
   const toggleProjectFavorite = useCallback((id: string) => {
     dispatch({ type: "TOGGLE_PROJECT_FAVORITE", id })
   }, [])
 
   /**
    * Dispara a chamada ao agente e resolve o placeholder "pensando".
-   *
-   * O `conversationId` da conversa ativa é enviado para ativar memória/RAG por
-   * conversa (Entrega 3). TODO: a API ainda não recebe o modelo selecionado
-   * (cosmético) nem os anexos/instruções/memória do projeto; quando o backend
-   * suportar, enviar esses dados junto da mensagem.
+   * Envia conversationId, o modelo selecionado (mapeado p/ o llm-gateway) e os toggles
+   * de memória/RAG da conversa. Lê o estado mais recente via stateRef (sem recriar o callback).
    */
   const runAgent = useCallback(
     (conversationId: string, apiText: string, pendingId: string) => {
-      sendChat(apiText, conversationId)
-        .then(({ reply, trace }) => {
+      const s = stateRef.current
+      const conv = s.conversations.find((c) => c.id === conversationId)
+      sendChat(apiText, {
+        conversationId,
+        model: MODEL_TO_GATEWAY[s.settings.model],
+        useMemory: conv?.useMemory,
+        useRag: conv?.useRag,
+      })
+        .then(({ reply, trace, citations }) => {
           dispatch({
             type: "RESOLVE_MESSAGE",
             conversationId,
             messageId: pendingId,
             content: reply,
             trace,
+            citations,
           })
         })
         .catch(() => {
@@ -720,6 +758,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       showRecents,
       showProjectsList,
       toggleConversationFavorite,
+      toggleConversationMemory,
+      toggleConversationRag,
       toggleProjectFavorite,
       sendMessage,
       editAndResend,
@@ -751,6 +791,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       showRecents,
       showProjectsList,
       toggleConversationFavorite,
+      toggleConversationMemory,
+      toggleConversationRag,
       toggleProjectFavorite,
       sendMessage,
       editAndResend,

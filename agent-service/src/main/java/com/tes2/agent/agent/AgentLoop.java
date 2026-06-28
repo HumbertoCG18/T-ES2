@@ -81,26 +81,30 @@ public class AgentLoop {
         this.model = llmProps.model();
     }
 
-    public AgentResult run(String conversationId, String userMessage) {
+    public AgentResult run(String conversationId, String userMessage, String model,
+                           boolean useMemory, boolean useRag) {
         long startedAt = System.currentTimeMillis();
+        String effectiveModel = (model == null || model.isBlank()) ? this.model : model;
         List<ChatMessage> messages = new ArrayList<>();
         List<String> trace = new ArrayList<>();
         List<String> toolsUsed = new ArrayList<>();
         messages.add(ChatMessage.system(SYSTEM_PROMPT));
 
-        // Memoria: historico recente (ordem antiga -> nova), antes da mensagem atual.
-        List<ChatMessage> history = memoryClient.recentHistory(conversationId, historyLimit);
-        if (!history.isEmpty()) {
-            messages.addAll(history);
-            trace.add("memoria: " + history.size() + " mensagens de historico carregadas");
+        // Memoria (toggle por conversa): historico recente, antes da mensagem atual.
+        if (useMemory) {
+            List<ChatMessage> history = memoryClient.recentHistory(conversationId, historyLimit);
+            if (!history.isEmpty()) {
+                messages.addAll(history);
+                trace.add("memoria: " + history.size() + " mensagens de historico carregadas");
+            }
         }
 
-        // RAG: so injeta trechos ACIMA do limiar de relevancia (evita ruido em mensagens
-        // irrelevantes, ex.: "Teste" recuperaria topK trechos sem sentido).
-        List<Hit> hits = retrievalClient.search(userMessage, ragTopK, null).stream()
-                .filter(h -> h.score() >= ragMinScore)
-                .toList();
-        int ragHits = hits.size();
+        // RAG (toggle por conversa): so injeta trechos ACIMA do limiar de relevancia.
+        List<Hit> hits = useRag
+                ? retrievalClient.search(userMessage, ragTopK, null).stream()
+                        .filter(h -> h.score() >= ragMinScore)
+                        .toList()
+                : List.of();
         if (!hits.isEmpty()) {
             StringBuilder ctx = new StringBuilder(
                     "Contexto recuperado dos documentos do usuario (use se for relevante; nao invente):\n");
@@ -114,16 +118,14 @@ public class AgentLoop {
         messages.add(ChatMessage.user(userMessage));
 
         // Gating de ferramenta: so oferecemos as ferramentas (do tool-registry) ao LLM quando a
-        // mensagem parece precisar (digito, ou palavra-chave de data/dados). O modelo local
-        // (llama3.1 8B) aluciná tool-calls ate para "Teste"; nao oferecer ferramenta nesses casos
-        // elimina o problema na raiz. Sem necessidade aparente, activeTools = null (nenhuma ferramenta).
+        // mensagem parece precisar (digito, ou palavra-chave de data/dados).
         List<ToolSpec> activeTools = needsTools(userMessage) ? toolRegistryClient.specs() : null;
 
         String finalReply = null;
         int iterations = 0;
         for (int i = 0; i < maxIterations && finalReply == null; i++) {
             iterations = i + 1;
-            ChatMessage assistant = llmClient.complete(messages, activeTools);
+            ChatMessage assistant = llmClient.complete(messages, activeTools, effectiveModel);
             messages.add(assistant);
 
             if (assistant.toolCalls() == null || assistant.toolCalls().isEmpty()) {
@@ -147,15 +149,26 @@ public class AgentLoop {
             finalReply = "Nao foi possivel concluir dentro do limite de iteracoes.";
         }
 
-        // Persiste o turno limpo (user + assistant final); 'tool' intermediarias ficam efemeras (R5).
-        memoryClient.appendTurn(conversationId, userMessage, finalReply);
+        // Persiste o turno apenas se a memoria estiver ligada (toggle por conversa).
+        if (useMemory) {
+            memoryClient.appendTurn(conversationId, userMessage, finalReply);
+        }
 
-        // Telemetria (Entrega 4): publica metricas do turno; best-effort, nao bloqueia.
+        // Telemetria (best-effort, nao bloqueia).
         long latencyMs = System.currentTimeMillis() - startedAt;
         telemetryProducer.publish(new TelemetryEventDto(
-                conversationId, latencyMs, iterations, List.copyOf(toolsUsed), ragHits, model, Instant.now()));
+                conversationId, latencyMs, iterations, List.copyOf(toolsUsed), hits.size(),
+                effectiveModel, Instant.now()));
 
-        return new AgentResult(finalReply, trace);
+        // Citacoes: os trechos do RAG efetivamente injetados como contexto.
+        List<Citation> citations = hits.stream()
+                .map(h -> new Citation(
+                        h.text(),
+                        h.score(),
+                        h.metadata() == null ? "" : String.valueOf(h.metadata().getOrDefault("doc_id", ""))))
+                .toList();
+
+        return new AgentResult(finalReply, trace, citations);
     }
 
     // Palavras-chave que sugerem necessidade de ferramenta (datetime / db_query).
