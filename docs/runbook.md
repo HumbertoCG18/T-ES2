@@ -59,6 +59,16 @@ curl http://localhost:8080/chat -H "Content-Type: application/json" ^
 # com thinking, a reply vem em secoes "Raciocinio:" / "Resposta:".
 ```
 
+**Gerência de modelos do Ollama (ADR 0016):** proxy do agent-service via gateway. Baixar exige
+internet (setup); o `/chat` segue local. Na UI: Configurações → aba **Modelos** (barra de progresso).
+
+```
+curl http://localhost:8080/models                                  # listar instalados (proxy /api/tags)
+curl http://localhost:8080/models/pull -H "Content-Type: application/json" ^
+  -d "{\"model\":\"embeddinggemma:300m\"}" --no-buffer              # baixar (NDJSON streaming: total/completed)
+curl -X DELETE http://localhost:8080/models/embeddinggemma:300m     # remover
+```
+
 Demonstrar o **circuit breaker** (não precisa de Ollama/LiteLLM): derrube o `llm-gateway`
 (Ctrl+C no terminal 2) e chame via gateway — o `agent-service` devolve o fallback em vez de 5xx:
 

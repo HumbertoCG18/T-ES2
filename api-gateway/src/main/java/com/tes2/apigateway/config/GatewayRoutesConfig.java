@@ -48,6 +48,9 @@ public class GatewayRoutesConfig {
                 .route("agent-services", r -> r.path("/services/**").uri("lb://agent-service"))
                 // Ver/gerenciar memoria de uma conversa (proxy do agent-service ao memory-service).
                 .route("agent-memory", r -> r.path("/memory/**").uri("lb://agent-service"))
+                // Administracao de modelos do Ollama (listar/baixar/remover) -> proxy no agent-service.
+                // Sem rate limit; o /pull responde em streaming (progresso do download).
+                .route("agent-models", r -> r.path("/models/**").uri("lb://agent-service"))
                 .build();
     }
 }

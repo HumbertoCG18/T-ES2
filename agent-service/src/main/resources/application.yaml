@@ -2,6 +2,12 @@ spring:
   application:
     name: agent-service
 
+  # /models/pull responde em streaming (StreamingResponseBody): o download de um modelo pode levar
+  # minutos. Eleva o timeout do request assincrono (padrao do container ~30s mataria o stream).
+  mvc:
+    async:
+      request-timeout: 3600000   # 1h
+
   # Mensageria (Entrega 4). Produtor de document.ingest e telemetry.events.
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
@@ -36,6 +42,11 @@ retrieval:
 # tool-registry: ferramentas remotas (calculator, datetime, db_query). lb:// ou http://host:porta.
 tools:
   base-url: ${TOOLS_URL:lb://tool-registry}
+
+# Ollama (administracao de modelos: listar/baixar/remover via /models). Setup, fora do /chat.
+# Compose: http://ollama:11434. URL fixa (Ollama nao esta no Eureka).
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
 
 eureka:
   client:

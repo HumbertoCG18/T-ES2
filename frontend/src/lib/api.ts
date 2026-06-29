@@ -111,6 +111,100 @@ export async function ingestDocument(
   if (!res.ok) throw new Error(`http_error_${res.status}`)
 }
 
+// ---------- Modelos do Ollama (administração; via /api/models → agent-service) ----------
+
+/** Modelo instalado no Ollama (subset de GET /api/tags). */
+export interface OllamaModel {
+  name: string
+  size: number
+  modifiedAt?: string
+  parameterSize?: string
+  quantization?: string
+}
+
+/** Lista os modelos instalados no Ollama. */
+export async function listOllamaModels(): Promise<OllamaModel[]> {
+  const res = await fetch("/api/models")
+  if (!res.ok) throw new Error(`http_error_${res.status}`)
+  const data = (await res.json()) as { models?: unknown }
+  const models = Array.isArray(data.models) ? data.models : []
+  return models
+    .map((m) => {
+      const o = m as Record<string, unknown>
+      const details = (o.details ?? {}) as Record<string, unknown>
+      return {
+        name: String(o.name ?? ""),
+        size: Number(o.size ?? 0),
+        modifiedAt: typeof o.modified_at === "string" ? o.modified_at : undefined,
+        parameterSize:
+          typeof details.parameter_size === "string" ? details.parameter_size : undefined,
+        quantization:
+          typeof details.quantization_level === "string" ? details.quantization_level : undefined,
+      }
+    })
+    .filter((m) => m.name)
+}
+
+/** Evento de progresso do download (NDJSON do Ollama). `completed`/`total` são da camada atual. */
+export interface PullProgress {
+  status: string
+  digest?: string
+  total?: number
+  completed?: number
+}
+
+/**
+ * Baixa um modelo no Ollama com progresso em streaming: lê o NDJSON da resposta linha a linha e
+ * chama `onProgress` a cada evento. Cancelável via `AbortSignal`. Lança se o Ollama reportar erro.
+ */
+export async function pullOllamaModel(
+  model: string,
+  onProgress: (p: PullProgress) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const res = await fetch("/api/models/pull", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model }),
+    signal,
+  })
+  if (!res.ok || !res.body) throw new Error(`http_error_${res.status}`)
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let nl: number
+    while ((nl = buffer.indexOf("\n")) >= 0) {
+      const line = buffer.slice(0, nl).trim()
+      buffer = buffer.slice(nl + 1)
+      if (!line) continue
+      let evt: Record<string, unknown>
+      try {
+        evt = JSON.parse(line) as Record<string, unknown>
+      } catch {
+        continue // linha parcial/inválida
+      }
+      if (typeof evt.error === "string") throw new Error(evt.error)
+      onProgress({
+        status: typeof evt.status === "string" ? evt.status : "",
+        digest: typeof evt.digest === "string" ? evt.digest : undefined,
+        total: typeof evt.total === "number" ? evt.total : undefined,
+        completed: typeof evt.completed === "number" ? evt.completed : undefined,
+      })
+    }
+  }
+}
+
+/** Remove um modelo instalado. */
+export async function deleteOllamaModel(name: string): Promise<void> {
+  const res = await fetch(`/api/models/${encodeURIComponent(name)}`, { method: "DELETE" })
+  if (!res.ok) throw new Error(`http_error_${res.status}`)
+}
+
 /** Serviço registrado no Eureka (saúde ao vivo). */
 export interface ServiceStatus {
   name: string

@@ -27,6 +27,12 @@ aparecem no `trace` (`esforco: …`, `modo raciocinio: ligado`). No frontend ess
 no **input do chat** (composer, estilo Claude Code), fonte única de seleção — não na top bar nem
 nas configurações.
 
+**Gerência de modelos do Ollama (ADR 0016).** O `agent-service` também expõe `/models` (proxy do
+Ollama, via gateway): `GET /models` (listar), `POST /models/pull` (baixar, **streaming NDJSON** com
+progresso) e `DELETE /models/{name}` (remover). A aba **Modelos** das Configurações usa isso para
+baixar modelos com **barra de progresso** (%, velocidade, ETA) sem terminal — o browser nunca fala
+direto com o Ollama (`OLLAMA_BASE_URL`). Baixar exige internet (setup); o `/chat` segue 100% local.
+
 ## Microsserviços
 
 | # | Serviço | Responsabilidade | Stack | Status |

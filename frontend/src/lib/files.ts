@@ -21,12 +21,13 @@ export function isTextFile(file: File): boolean {
   return TEXT_EXTENSIONS.includes(extension(file.name))
 }
 
-/** Tamanho legível: B / KB / MB. */
+/** Tamanho legível: B / KB / MB / GB. */
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return "0 B"
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
 /** Indica se o texto guardado foi truncado por exceder MAX_TEXT_BYTES. */

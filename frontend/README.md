@@ -26,8 +26,9 @@ código**, **timeline** do ciclo agêntico (Pensamento vs passos), **citações*
 modelo · esforço (Rápido/Equilibrado/Profundo) · raciocínio (thinking) — estilo Claude Code,
 enviados ao `/chat`** e que mudam o comportamento de verdade (orçamento de iterações + temperatura
 + raciocínio passo a passo no `trace`; ADR 0015). Projetos com instruções/memória/arquivos
-(barra de capacidade). Configurações (tema, fonte, instruções) + aba **Infraestrutura** (mostra as
-Entregas 4–7 com links para RabbitMQ/Jaeger). Toggles de memória/RAG por conversa, ver/limpar
+(barra de capacidade). Configurações (tema, fonte, instruções) + aba **Modelos** (baixar/listar/
+remover modelos do Ollama via `/models`, com **barra de progresso** %/velocidade/ETA; ADR 0016) +
+aba **Infraestrutura** (mostra as Entregas 4–7 com links para RabbitMQ/Jaeger). Toggles de memória/RAG por conversa, ver/limpar
 memória, saúde dos serviços ao vivo. Logomark próprio.
 
 ## Comandos

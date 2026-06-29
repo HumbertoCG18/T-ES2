@@ -11,7 +11,7 @@ técnico** exigido pela spec (não é trabalho duplicado: escreve aqui, monta o 
 | [`plan/`](plan/README.md) | roteiro de execução + método de trabalho (SADD) + status por entrega |
 | [`plan/08-entrega-final.md`](plan/08-entrega-final.md) | roteiro passo a passo da **Entrega 8** (relatório/vídeo) |
 | [`architecture.md`](architecture.md) | (a) diagrama + arquitetura: serviços, responsabilidades, protocolos |
-| [`adr/`](adr/) | (f) decisões de arquitetura + justificativas (ADRs 0001–0015) |
+| [`adr/`](adr/) | (f) decisões de arquitetura + justificativas (ADRs 0001–0016) |
 | [`runbook.md`](runbook.md) | comandos de operação (subir/testar/observabilidade) |
 | [`experiments.md`](experiments.md) | (rascunho p/ Entrega 8) avaliação de desempenho / benchmarks |
 | [`risks.md`](risks.md) | (rascunho p/ Entrega 8) riscos: segurança, performance, escalabilidade, disponibilidade |

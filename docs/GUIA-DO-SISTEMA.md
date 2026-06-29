@@ -70,12 +70,13 @@ Cada serviço é um projeto **independente** (build, Dockerfile e deploy própri
 - **Capacidades de plataforma**: rate limiting (HTTP 429), toggles de memória/RAG por conversa,
   ver/limpar memória, saúde dos serviços ao vivo, upload de arquivo → RAG, **controles do agente no
   input do chat (modelo · esforço · raciocínio), reais** (mudam orçamento de iterações/temperatura/
-  raciocínio — ADR 0015), citações.
+  raciocínio — ADR 0015), **gerência de modelos do Ollama pela UI** (aba Modelos: baixar com barra de
+  progresso %/velocidade/ETA, listar, remover — ADR 0016), citações.
 - **Frontend** estilo claude.ai (polido em 3 passes): views Conversas/Projetos/Capacidades, favoritos,
   blocos de código, citar trecho, timeline do ciclo agêntico, projetos com arquivos/memória, aba
   **Infraestrutura** nas configurações (mostra Entregas 4–7 + links p/ RabbitMQ/Jaeger), logomark próprio.
 
-**Decisões de arquitetura** estão nos **ADRs** em [`docs/adr/`](adr/) (0001–0015). O estado e o método
+**Decisões de arquitetura** estão nos **ADRs** em [`docs/adr/`](adr/) (0001–0016). O estado e o método
 de trabalho ficam em [`docs/plan/README.md`](plan/README.md).
 
 ---
@@ -170,7 +171,8 @@ cd frontend && npm install && npm run dev
 | **Jaeger** (tracing) | http://localhost:16686 |
 
 Endpoints úteis (via gateway 8080): `POST /chat`, `GET /tools`, `GET /services`,
-`POST /documents/ingest`, `GET/DELETE /memory/{conversationId}`.
+`POST /documents/ingest`, `GET/DELETE /memory/{conversationId}`, `GET /models` ·
+`POST /models/pull` · `DELETE /models/{name}` (gerência de modelos do Ollama).
 
 ---
 
@@ -216,7 +218,7 @@ T-ES2/
    ├─ architecture.md    # arquitetura + diagrama ASCII
    ├─ runbook.md         # comandos de operacao
    ├─ cloud-evolution.md # evolucao p/ nuvem
-   ├─ adr/               # decisoes de arquitetura (0001-0015)
+   ├─ adr/               # decisoes de arquitetura (0001-0016)
    └─ plan/              # estado e planos por entrega
 ```
 

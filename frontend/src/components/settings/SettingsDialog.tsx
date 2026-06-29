@@ -1,6 +1,8 @@
-import { useState, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import {
   Boxes,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   Monitor,
   Moon,
@@ -23,6 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { ModelsSettings } from "./ModelsSettings"
 import { useStore } from "@/store/store"
 import { FONT_OPTIONS, RESPONSE_STYLES, type ThemePref } from "@/store/types"
 
@@ -136,6 +139,75 @@ function Segmented<T extends string>({
   )
 }
 
+/**
+ * Faixa de abas em **uma linha**, rolável na horizontal: esconde a barra de rolagem, faz os tabs
+ * sumirem (fade via máscara) nas bordas com conteúdo oculto e mostra uma seta para rolar cada lado.
+ */
+function ScrollableTabsList({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fade, setFade] = useState({ left: false, right: false })
+
+  const update = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const left = el.scrollLeft > 2
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+    setFade((p) => (p.left === left && p.right === right ? p : { left, right }))
+  }, [])
+
+  useEffect(() => {
+    update()
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    window.addEventListener("resize", update)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", update)
+    }
+  }, [update])
+
+  const scrollStep = (dir: number) =>
+    ref.current?.scrollBy({ left: dir * 160, behavior: "smooth" })
+
+  const { left: l, right: r } = fade
+  const mask = `linear-gradient(to right, ${l ? "transparent" : "#000"} 0, #000 ${l ? "2rem" : "0px"}, #000 calc(100% - ${r ? "2rem" : "0px"}), ${r ? "transparent" : "#000"} 100%)`
+  const arrow =
+    "absolute top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm outline-none transition-opacity hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        onScroll={update}
+        className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ WebkitMaskImage: mask, maskImage: mask }}
+      >
+        {children}
+      </div>
+      <button
+        type="button"
+        aria-label="Rolar abas para a esquerda"
+        tabIndex={l ? 0 : -1}
+        onClick={() => scrollStep(-1)}
+        className={cn(arrow, "left-0", l ? "opacity-100" : "pointer-events-none opacity-0")}
+      >
+        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        aria-label="Rolar abas para a direita"
+        tabIndex={r ? 0 : -1}
+        onClick={() => scrollStep(1)}
+        className={cn(arrow, "right-0", r ? "opacity-100" : "pointer-events-none opacity-0")}
+      >
+        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+      </button>
+    </div>
+  )
+}
+
 export function SettingsDialog({ children }: { children: ReactNode }) {
   const { state, setTheme, updateSettings } = useStore()
   const [open, setOpen] = useState(false)
@@ -151,21 +223,26 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="geral">
-          <TabsList className="w-full overflow-x-auto">
-            <TabsTrigger value="geral" className="flex-1 shrink-0 min-w-fit">
-              Geral
-            </TabsTrigger>
-            <TabsTrigger value="perfil" className="flex-1 shrink-0 min-w-fit">
-              Personalização
-            </TabsTrigger>
-            <TabsTrigger value="infra" className="flex-1 shrink-0 min-w-fit">
-              Infraestrutura
-            </TabsTrigger>
-            <TabsTrigger value="sobre" className="flex-1 shrink-0 min-w-fit">
-              Sobre
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="geral" className="min-w-0">
+          <ScrollableTabsList>
+            <TabsList className="w-max">
+              <TabsTrigger value="geral" className="shrink-0">
+                Geral
+              </TabsTrigger>
+              <TabsTrigger value="perfil" className="shrink-0">
+                Personalização
+              </TabsTrigger>
+              <TabsTrigger value="modelos" className="shrink-0">
+                Modelos
+              </TabsTrigger>
+              <TabsTrigger value="infra" className="shrink-0">
+                Infraestrutura
+              </TabsTrigger>
+              <TabsTrigger value="sobre" className="shrink-0">
+                Sobre
+              </TabsTrigger>
+            </TabsList>
+          </ScrollableTabsList>
 
           {/* ---------- Geral ---------- */}
           <TabsContent value="geral">
@@ -259,7 +336,7 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                 </label>
                 <Textarea
                   id="set-instructions"
-                  className="mt-1.5 min-h-[88px]"
+                  className="mt-1.5 min-h-[88px] rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors focus-visible:border-accent/50 focus-visible:ring-2 focus-visible:ring-accent/30"
                   value={state.settings.instructions ?? ""}
                   onChange={(e) => updateSettings({ instructions: e.target.value })}
                   placeholder="Ex.: responda em português, seja direto e cite as fontes."
@@ -270,6 +347,11 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                 </p>
               </div>
             </div>
+          </TabsContent>
+
+          {/* ---------- Modelos (Ollama) ---------- */}
+          <TabsContent value="modelos">
+            <ModelsSettings />
           </TabsContent>
 
           {/* ---------- Infraestrutura ---------- */}

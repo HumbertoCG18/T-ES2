@@ -38,7 +38,8 @@ Entrega 8** (relatório técnico + vídeo + apresentação, englobando diagrama,
   knowledge_search, unit_convert, text_stats, random). ADR 0011.
 - ✅ **Capacidades de plataforma**: rate limiting no gateway (429), toggles de memória/RAG por
   conversa + ver/limpar memória, saúde dos serviços ao vivo, upload→RAG, **controles do agente no
-  input (modelo · esforço · raciocínio), reais e no `trace`** (ADR 0015), citações.
+  input (modelo · esforço · raciocínio), reais e no `trace`** (ADR 0015), **gerência de modelos do
+  Ollama pela UI (baixar com barra de progresso, listar, remover — ADR 0016)**, citações.
 - ✅ **Entrega 5** — containerização: Dockerfile por serviço + `docker-compose.yaml` completo
   (7 serviços + infra + Ollama). `docker compose up` verificado in-container. ADR 0012.
 - ✅ **Entrega 6** — observabilidade: tracing OTel→Jaeger (5 serviços, Java↔Python) + CI
@@ -53,7 +54,7 @@ Entrega 8** (relatório técnico + vídeo + apresentação, englobando diagrama,
 apresentação. Engloba os artefatos não-código: **diagrama** de arquitetura (visual), **benchmarks de
 desempenho** (experimentação + interpretação crítica — a telemetria persistida é a base) e
 **discussão de riscos** (segurança, performance, escalabilidade, disponibilidade). As decisões de
-arquitetura já estão nos **ADRs 0001–0015** (insumo direto do relatório). **Roteiro passo a passo
+arquitetura já estão nos **ADRs 0001–0016** (insumo direto do relatório). **Roteiro passo a passo
 pronto** em [`08-entrega-final.md`](08-entrega-final.md). Visão geral para quem chega:
 [`../GUIA-DO-SISTEMA.md`](../GUIA-DO-SISTEMA.md).
 
@@ -72,7 +73,7 @@ pronto** em [`08-entrega-final.md`](08-entrega-final.md). Visão geral para quem
 | 7 | Produção em nuvem — manifests + descrição K8s | [`07-nuvem-k8s.md`](07-nuvem-k8s.md) | ✅ Concluída (`k8s/` com 35 recursos — 7 serviços + infra + Jaeger + Ingress; `kubectl kustomize` válido; análise de evolução `cloud-evolution.md`; ADR 0014) |
 | 8 | Entrega final — relatório + vídeo + apresentação | [`08-entrega-final.md`](08-entrega-final.md) | 🔨 Roteiro pronto (executar: diagrama, benchmarks, riscos, relatório, vídeo) |
 | T | tool-registry (microsserviço nº 5 da spec) | [`T-tool-registry.md`](T-tool-registry.md) | ✅ Concluído (7 ferramentas remotas: calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random; ADR 0011) |
-| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento — funcional e **polido em 3 passes** (tokens, estados/skeletons, mobile/a11y, logomark); views Conversas/Projetos/Capacidades, favoritos, citações, toggles memória/RAG, **controles do agente no input (modelo · esforço · raciocínio, reais — ADR 0015)**, configurações + aba Infraestrutura |
+| B | Bônus — frontend (app shell + demo) | [`B-frontend.md`](B-frontend.md) | 🔨 Em andamento — funcional e **polido em 3 passes** (tokens, estados/skeletons, mobile/a11y, logomark); views Conversas/Projetos/Capacidades, favoritos, citações, toggles memória/RAG, **controles do agente no input (modelo · esforço · raciocínio, reais — ADR 0015)**, **aba Modelos (baixar/listar/remover do Ollama com barra de progresso — ADR 0016)**, configurações + aba Infraestrutura |
 
 ## Critérios de aceite (resumo por entrega)
 

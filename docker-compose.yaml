@@ -171,11 +171,13 @@ services:
       RETRIEVAL_URL: lb://retrieval-service
       TOOLS_URL: lb://tool-registry
       OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      OLLAMA_BASE_URL: http://ollama:11434
     ports: ["8081:8081"]
     depends_on:
       rabbitmq: { condition: service_healthy }
       llm-gateway: { condition: service_started }
       name-server: { condition: service_started }
+      ollama: { condition: service_started }
     restart: unless-stopped
 
   api-gateway:

@@ -17,6 +17,17 @@ public class RestClientConfig {
     }
 
     /**
+     * Cliente do Ollama para administração de modelos (URL fixa, não está no Eureka). Sem read
+     * timeout: o download de um modelo (pull em streaming) pode levar minutos.
+     */
+    @Bean
+    RestClient ollamaRestClient(OllamaProperties props) {
+        return RestClient.builder()
+                .baseUrl(props.baseUrl())
+                .build();
+    }
+
+    /**
      * Builder com Spring Cloud LoadBalancer (resolve lb://&lt;serviço&gt; via Eureka).
      * Vem junto do eureka-client. Usado só pelos serviços novos (memory/retrieval).
      */

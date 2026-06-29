@@ -102,6 +102,74 @@ export const MODEL_TO_GATEWAY: Record<ModelId, string> = {
   "gemma3:4b": "chat-light",
 }
 
+/** Entrada do catálogo curado de modelos do Ollama (para baixar nas Configurações). */
+export interface OllamaCatalogEntry {
+  /** Tag exata para `ollama pull` (ex.: "llama3.1", "gemma3:4b"). */
+  name: string
+  label: string
+  /** Tamanho aproximado do download. */
+  size: string
+  description: string
+  /** Rótulo curto de destaque (ex.: "ferramentas", "leve", "embeddings"). */
+  tag?: string
+}
+
+/**
+ * Catálogo curado de modelos populares (o ollama.com/search não tem API pública — para o resto,
+ * use o campo de busca por nome ou o link "ver catálogo completo"). Os modelos de `MODELS` e o de
+ * embeddings do RAG estão aqui.
+ */
+export const OLLAMA_CATALOG: OllamaCatalogEntry[] = [
+  {
+    name: "llama3.1",
+    label: "Llama 3.1 8B",
+    size: "~4.9 GB",
+    description: "Padrão da plataforma; tool calling confiável.",
+    tag: "ferramentas",
+  },
+  {
+    name: "llama3.2:3b",
+    label: "Llama 3.2 3B",
+    size: "~2.0 GB",
+    description: "Mais leve e rápido; bom em máquinas modestas.",
+    tag: "leve",
+  },
+  {
+    name: "gemma3:4b",
+    label: "Gemma 3 4B",
+    size: "~3.3 GB",
+    description: "Alternativa leve (cabe em ~4 GB de VRAM).",
+    tag: "leve",
+  },
+  {
+    name: "qwen2.5:7b",
+    label: "Qwen 2.5 7B",
+    size: "~4.7 GB",
+    description: "Forte em raciocínio e tool calling.",
+    tag: "ferramentas",
+  },
+  {
+    name: "phi3.5",
+    label: "Phi 3.5",
+    size: "~2.2 GB",
+    description: "Pequeno e capaz; ótimo custo/qualidade.",
+    tag: "leve",
+  },
+  {
+    name: "mistral",
+    label: "Mistral 7B",
+    size: "~4.1 GB",
+    description: "Generalista popular.",
+  },
+  {
+    name: "embeddinggemma:300m",
+    label: "EmbeddingGemma 300M",
+    size: "~620 MB",
+    description: "Embeddings do RAG (retrieval-service). Necessário p/ busca semântica.",
+    tag: "embeddings",
+  },
+]
+
 /**
  * Nível de esforço do agente: orçamento de iterações do ciclo agêntico + temperatura.
  * Enviado ao /chat e mapeado no agent-service (AgentLoop.effortPolicy).

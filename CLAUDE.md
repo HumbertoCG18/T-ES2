@@ -18,11 +18,14 @@ nuvem (Entrega 7): manifests **Kubernetes** em `k8s/` + `docs/cloud-evolution.md
 (Vite + React + Tailwind) — cliente estilo claude.ai, **polido em 3 passes** (ver `docs/plan/B-frontend.md`);
 **controles do agente no input do chat (modelo · esforço · raciocínio), reais e por requisição** —
 `/chat` recebe `model`/`effort`/`thinking`, mapeados em `AgentLoop.effortPolicy` (orçamento de
-iterações + temperatura) e no system prompt (ADR 0015).
+iterações + temperatura) e no system prompt (ADR 0015). **Gerência de modelos do Ollama pela UI**
+(aba Modelos nas Configurações): endpoints `/models` no agent-service (proxy do Ollama:
+listar/baixar-streaming/remover) via gateway, com **barra de progresso** (%, velocidade, ETA);
+catálogo curado + campo livre (ollama.com/search não tem API). Env `OLLAMA_BASE_URL` (ADR 0016).
 **Sempre conferir `docs/plan/README.md`** para o estado. Onboarding completo em
 `docs/GUIA-DO-SISTEMA.md`; roteiro da Entrega 8 em `docs/plan/08-entrega-final.md`. Arquitetura-alvo
-na spec (`docs/t1_2026_1.pdf`). ADRs: 0001–0015 (memória, retrieval, RAG, mensageria, tool-registry,
-containerização, observabilidade, K8s, controles do agente).
+na spec (`docs/t1_2026_1.pdf`). ADRs: 0001–0016 (memória, retrieval, RAG, mensageria, tool-registry,
+containerização, observabilidade, K8s, controles do agente, gerência de modelos).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +

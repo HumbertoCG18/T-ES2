@@ -24,6 +24,11 @@ Context + useReducer com persistência em **localStorage** (sem backend novo). P
   (Rápido/Equilibrado/Profundo) e **raciocínio (thinking)** — enviados ao `/chat` e que mudam o
   comportamento de verdade (orçamento de iterações + temperatura + raciocínio passo a passo no
   `trace`). Fonte única de seleção (removidos da top bar e das Configurações). ADR 0015.
+- **Aba Modelos (Configurações):** gerência de modelos do Ollama via `/models` (proxy no
+  agent-service): **listar** instalados, **baixar** com **barra de progresso** (%, baixado/total,
+  velocidade, ETA, cancelar) lendo o stream NDJSON, **remover**, copiar comando CLI, catálogo curado
+  + campo livre + link ollama.com/search. Verificado ao vivo (embeddinggemma:300m baixou pela UI).
+  Abas das Configurações em uma linha rolável (seta + fade). ADR 0016.
 - **Dark mode** (claro / escuro / sistema) com anti-FOUC e `prefers-reduced-motion`.
 - Múltiplas conversas + projetos persistidos; renomear/excluir/mover; busca.
 - Configurações (modal com abas Geral / Personalização / Infraestrutura / Sobre — a seleção de
