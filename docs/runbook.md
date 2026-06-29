@@ -49,6 +49,16 @@ curl http://localhost:8080/chat -H "Content-Type: application/json" ^
   -d "{\"message\":\"Quanto e (12 + 8) * 3?\"}"
 ```
 
+**Controles do agente por requisição (ADR 0015):** `effort` (`rapido|equilibrado|profundo`) e
+`thinking` (bool), além de `model`. Mudam o comportamento de verdade — aparecem no `trace`:
+
+```
+curl http://localhost:8080/chat -H "Content-Type: application/json" ^
+  -d "{\"message\":\"Quanto e (12 + 8) * 3?\",\"effort\":\"profundo\",\"thinking\":true}"
+# trace inclui: "esforco: profundo (orcamento 10 iteracoes, temperatura 0.3)" e "modo raciocinio: ligado";
+# com thinking, a reply vem em secoes "Raciocinio:" / "Resposta:".
+```
+
 Demonstrar o **circuit breaker** (não precisa de Ollama/LiteLLM): derrube o `llm-gateway`
 (Ctrl+C no terminal 2) e chame via gateway — o `agent-service` devolve o fallback em vez de 5xx:
 

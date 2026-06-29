@@ -18,7 +18,7 @@
 - [ ] **Vídeo de demonstração** — YouTube **não-listado**.
 - [ ] **Apresentação final** — slides.
 
-Insumo já pronto: **ADRs 0001–0014** ([`../adr/`](../adr/)) = decisões + trade-offs prontos para
+Insumo já pronto: **ADRs 0001–0015** ([`../adr/`](../adr/)) = decisões + trade-offs prontos para
 o relatório; [`architecture.md`](../architecture.md) = arquitetura e fluxos; [`GUIA-DO-SISTEMA.md`](../GUIA-DO-SISTEMA.md) = visão geral.
 
 ---
@@ -96,7 +96,7 @@ Cobrir os 4 eixos com exemplos **concretos do sistema** (não genéricos):
 1. **Capa / identificação** (disciplina, grupo, parceiro Nubo).
 2. **Introdução** — problema, objetivo, escopo (resumo do [`GUIA-DO-SISTEMA.md`](../GUIA-DO-SISTEMA.md)).
 3. **Arquitetura** — diagrama (Passo 1) + descrição dos 7 serviços e dos fluxos.
-4. **Decisões de arquitetura e trade-offs** — destilar os **ADRs 0001–0014** (cada ADR já tem
+4. **Decisões de arquitetura e trade-offs** — destilar os **ADRs 0001–0015** (cada ADR já tem
    contexto/decisão/consequências).
 5. **Implementação por entrega** — o que foi feito em cada uma (1–7), com prints/trechos.
 6. **Experimentação / desempenho** — Passo 2 (tabelas, gráficos, análise).

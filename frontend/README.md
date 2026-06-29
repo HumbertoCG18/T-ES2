@@ -22,10 +22,13 @@ npm run dev     # http://localhost:5173
 
 App shell com views **Conversas / Projetos / Capacidades**; chat com markdown/LaTeX/**blocos de
 código**, **timeline** do ciclo agêntico (Pensamento vs passos), **citações** (fontes do RAG),
-**citar trecho**, editar/regenerar/copiar, anexos. Projetos com instruções/memória/arquivos
+**citar trecho**, editar/regenerar/copiar, anexos. **Controles do agente no input do chat —
+modelo · esforço (Rápido/Equilibrado/Profundo) · raciocínio (thinking) — estilo Claude Code,
+enviados ao `/chat`** e que mudam o comportamento de verdade (orçamento de iterações + temperatura
++ raciocínio passo a passo no `trace`; ADR 0015). Projetos com instruções/memória/arquivos
 (barra de capacidade). Configurações (tema, fonte, instruções) + aba **Infraestrutura** (mostra as
 Entregas 4–7 com links para RabbitMQ/Jaeger). Toggles de memória/RAG por conversa, ver/limpar
-memória, seletor de modelo (enviado ao `/chat`), saúde dos serviços ao vivo. Logomark próprio.
+memória, saúde dos serviços ao vivo. Logomark próprio.
 
 ## Comandos
 

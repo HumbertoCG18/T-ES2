@@ -68,12 +68,14 @@ Cada serviço é um projeto **independente** (build, Dockerfile e deploy própri
 - **tool-registry** com **7 ferramentas**: `calculator`, `datetime`, `db_query` (SELECT read-only),
   `knowledge_search` (RAG), `unit_convert`, `text_stats`, `random`.
 - **Capacidades de plataforma**: rate limiting (HTTP 429), toggles de memória/RAG por conversa,
-  ver/limpar memória, saúde dos serviços ao vivo, upload de arquivo → RAG, seletor de modelo, citações.
+  ver/limpar memória, saúde dos serviços ao vivo, upload de arquivo → RAG, **controles do agente no
+  input do chat (modelo · esforço · raciocínio), reais** (mudam orçamento de iterações/temperatura/
+  raciocínio — ADR 0015), citações.
 - **Frontend** estilo claude.ai (polido em 3 passes): views Conversas/Projetos/Capacidades, favoritos,
   blocos de código, citar trecho, timeline do ciclo agêntico, projetos com arquivos/memória, aba
   **Infraestrutura** nas configurações (mostra Entregas 4–7 + links p/ RabbitMQ/Jaeger), logomark próprio.
 
-**Decisões de arquitetura** estão nos **ADRs** em [`docs/adr/`](adr/) (0001–0014). O estado e o método
+**Decisões de arquitetura** estão nos **ADRs** em [`docs/adr/`](adr/) (0001–0015). O estado e o método
 de trabalho ficam em [`docs/plan/README.md`](plan/README.md).
 
 ---
@@ -214,7 +216,7 @@ T-ES2/
    ├─ architecture.md    # arquitetura + diagrama ASCII
    ├─ runbook.md         # comandos de operacao
    ├─ cloud-evolution.md # evolucao p/ nuvem
-   ├─ adr/               # decisoes de arquitetura (0001-0014)
+   ├─ adr/               # decisoes de arquitetura (0001-0015)
    └─ plan/              # estado e planos por entrega
 ```
 

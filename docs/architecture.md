@@ -18,6 +18,15 @@ via `api-gateway` (proxy de dev `/api` → `:8080`, com rewrite removendo `/api`
 pela spec; serve a teste e à demonstração. O "Cliente (HTTP)" do diagrama abaixo pode ser este
 frontend, `curl` ou Postman.
 
+**Controles do agente por requisição (ADR 0015).** O contrato do `/chat` é
+`{ message, conversationId?, model?, effort?, thinking?, useMemory?, useRag? }`. Além do `model`
+(mapeado para o modelo lógico do `llm-gateway`), o cliente envia **`effort`**
+(`rapido|equilibrado|profundo` → orçamento de iterações do ciclo + temperatura, em
+`AgentLoop.effortPolicy`) e **`thinking`** (anexa raciocínio passo a passo ao system prompt). Ambos
+aparecem no `trace` (`esforco: …`, `modo raciocinio: ligado`). No frontend esses controles ficam
+no **input do chat** (composer, estilo Claude Code), fonte única de seleção — não na top bar nem
+nas configurações.
+
 ## Microsserviços
 
 | # | Serviço | Responsabilidade | Stack | Status |
@@ -79,7 +88,7 @@ frontend, `curl` ou Postman.
   Futuro: OpenTelemetry + Jaeger + Prometheus (Entrega 6).
 ```
 
-## Estado atual (Entregas 1–3)
+## Estado atual (Entregas 1–7)
 
 - **Entrega 1 — Fundação:** `agent-service` recebe `POST /chat`, executa o ciclo agêntico com ≥1
   chamada ao LLM e ≥1 ferramenta (calculadora), via REST com `llm-gateway` (LiteLLM → Ollama

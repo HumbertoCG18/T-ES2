@@ -25,3 +25,4 @@ criar um novo ADR que substitua o anterior.
 | [0012](0012-containerizacao.md) | Containerização: Dockerfile por serviço + docker-compose completo (+ Ollama) | Aceito |
 | [0013](0013-observabilidade-tracing.md) | Observabilidade: tracing distribuído (OpenTelemetry + Jaeger) + CI (GitHub Actions) | Aceito |
 | [0014](0014-kubernetes-nuvem.md) | Produção em nuvem: manifests Kubernetes (paridade com o Compose) + evolução | Aceito |
+| [0015](0015-controles-agente-por-requisicao.md) | Controles do agente por requisição (modelo · esforço · raciocínio) no composer | Aceito |

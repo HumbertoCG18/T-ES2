@@ -15,11 +15,14 @@ ChromaDB + consumidor de ingestão + tracing, 8083), `tool-registry/` (Spring, *
 7 serviços + infra (Redis/Postgres/ChromaDB/RabbitMQ) + **Jaeger** + Ollama. Observabilidade
 (Entrega 6): tracing **OpenTelemetry → Jaeger** + **CI** (`.github/workflows/ci.yml`). Produção em
 nuvem (Entrega 7): manifests **Kubernetes** em `k8s/` + `docs/cloud-evolution.md`. Bônus: `frontend/`
-(Vite + React + Tailwind) — cliente estilo claude.ai, **polido em 3 passes** (ver `docs/plan/B-frontend.md`).
+(Vite + React + Tailwind) — cliente estilo claude.ai, **polido em 3 passes** (ver `docs/plan/B-frontend.md`);
+**controles do agente no input do chat (modelo · esforço · raciocínio), reais e por requisição** —
+`/chat` recebe `model`/`effort`/`thinking`, mapeados em `AgentLoop.effortPolicy` (orçamento de
+iterações + temperatura) e no system prompt (ADR 0015).
 **Sempre conferir `docs/plan/README.md`** para o estado. Onboarding completo em
 `docs/GUIA-DO-SISTEMA.md`; roteiro da Entrega 8 em `docs/plan/08-entrega-final.md`. Arquitetura-alvo
-na spec (`docs/t1_2026_1.pdf`). ADRs: 0001–0014 (memória, retrieval, RAG, mensageria, tool-registry,
-containerização, observabilidade, K8s).
+na spec (`docs/t1_2026_1.pdf`). ADRs: 0001–0015 (memória, retrieval, RAG, mensageria, tool-registry,
+containerização, observabilidade, K8s, controles do agente).
 
 **Decisões já tomadas (não reabrir sem motivo):**
 - `agent-service` em **Spring Boot** (não Python) — coesão com os outros 4 serviços Spring +
