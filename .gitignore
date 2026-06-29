@@ -47,3 +47,4 @@ dist/
 .vite/
 *.tsbuildinfo
 npm-debug.log*
+.CLAUDE.md
