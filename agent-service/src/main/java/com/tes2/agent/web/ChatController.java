@@ -31,17 +31,26 @@ public class ChatController {
         // Toggles por conversa: ausentes => ligados (comportamento padrão).
         boolean useMemory = request.useMemory() == null || request.useMemory();
         boolean useRag = request.useRag() == null || request.useRag();
+        // Modo raciocínio (thinking): ausente => desligado.
+        boolean thinking = request.thinking() != null && request.thinking();
 
-        AgentResult result = agentLoop.run(conversationId, request.message(), request.model(), useMemory, useRag);
+        AgentResult result = agentLoop.run(conversationId, request.message(), request.model(),
+                useMemory, useRag, request.effort(), thinking);
         return new ChatResponse(conversationId, result.reply(), result.trace(), result.citations());
     }
 
+    /**
+     * effort: "rapido" | "equilibrado" | "profundo" — controla o orçamento de iterações do
+     * ciclo agêntico e a temperatura. thinking: pede raciocínio passo a passo na resposta.
+     */
     public record ChatRequest(
             @NotBlank String message,
             String conversationId,
             String model,
             Boolean useMemory,
-            Boolean useRag) {
+            Boolean useRag,
+            String effort,
+            Boolean thinking) {
     }
 
     public record ChatResponse(

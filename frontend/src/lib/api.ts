@@ -11,6 +11,10 @@ export interface ChatOptions {
   conversationId?: string
   /** Nome lógico do modelo no llm-gateway (ex.: "chat", "chat-light"). */
   model?: string
+  /** Nível de esforço do agente: "rapido" | "equilibrado" | "profundo". */
+  effort?: string
+  /** Modo raciocínio (passos antes da resposta). */
+  thinking?: boolean
   useMemory?: boolean
   useRag?: boolean
 }
@@ -23,6 +27,8 @@ export async function sendChat(message: string, opts: ChatOptions = {}): Promise
   const body: Record<string, unknown> = { message }
   if (opts.conversationId) body.conversationId = opts.conversationId
   if (opts.model) body.model = opts.model
+  if (opts.effort) body.effort = opts.effort
+  if (opts.thinking) body.thinking = true
   if (opts.useMemory === false) body.useMemory = false
   if (opts.useRag === false) body.useRag = false
 

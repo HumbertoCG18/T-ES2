@@ -53,6 +53,17 @@ public class AgentLoop {
             Apos observar o resultado das ferramentas, produza uma resposta final clara em portugues.
             """;
 
+    /** Apendice ao system prompt quando o "modo raciocinio" (thinking) esta ligado. */
+    private static final String THINKING_ADDENDUM = """
+
+            MODO RACIOCINIO ATIVADO: antes de concluir, pense passo a passo. Comece a resposta com
+            uma secao curta "Raciocinio:" listando de 2 a 4 passos do seu raciocinio e, em seguida,
+            escreva "Resposta:" com a conclusao final, clara e direta. Seja conciso no raciocinio.
+            """;
+
+    /** Politica de esforco: orcamento de iteracoes do ciclo agentico + temperatura. */
+    private record EffortPolicy(int iterationBudget, double temperature) {}
+
     private final LlmClient llmClient;
     private final ToolRegistryClient toolRegistryClient;
     private final MemoryClient memoryClient;
@@ -82,13 +93,19 @@ public class AgentLoop {
     }
 
     public AgentResult run(String conversationId, String userMessage, String model,
-                           boolean useMemory, boolean useRag) {
+                           boolean useMemory, boolean useRag, String effort, boolean thinking) {
         long startedAt = System.currentTimeMillis();
         String effectiveModel = (model == null || model.isBlank()) ? this.model : model;
+        EffortPolicy policy = effortPolicy(effort);
         List<ChatMessage> messages = new ArrayList<>();
         List<String> trace = new ArrayList<>();
         List<String> toolsUsed = new ArrayList<>();
-        messages.add(ChatMessage.system(SYSTEM_PROMPT));
+        messages.add(ChatMessage.system(thinking ? SYSTEM_PROMPT + THINKING_ADDENDUM : SYSTEM_PROMPT));
+        trace.add("esforco: " + (effort == null ? "equilibrado" : effort)
+                + " (orcamento " + policy.iterationBudget() + " iteracoes, temperatura " + policy.temperature() + ")");
+        if (thinking) {
+            trace.add("modo raciocinio: ligado");
+        }
 
         // Memoria (toggle por conversa): historico recente, antes da mensagem atual.
         if (useMemory) {
@@ -123,9 +140,9 @@ public class AgentLoop {
 
         String finalReply = null;
         int iterations = 0;
-        for (int i = 0; i < maxIterations && finalReply == null; i++) {
+        for (int i = 0; i < policy.iterationBudget() && finalReply == null; i++) {
             iterations = i + 1;
-            ChatMessage assistant = llmClient.complete(messages, activeTools, effectiveModel);
+            ChatMessage assistant = llmClient.complete(messages, activeTools, effectiveModel, policy.temperature());
             messages.add(assistant);
 
             if (assistant.toolCalls() == null || assistant.toolCalls().isEmpty()) {
@@ -206,5 +223,24 @@ public class AgentLoop {
             }
         }
         return false;
+    }
+
+    /**
+     * Mapeia o nivel de esforco para o orcamento de iteracoes do ciclo agentico e a temperatura.
+     * "profundo" deixa o agente iterar mais (raciocinar/usar ferramentas); "rapido" responde em
+     * poucas voltas. A temperatura segue baixa (o modelo local alucina tool-calls em temp alta),
+     * subindo so um pouco no modo profundo para explorar mais. O orcamento parte do limite
+     * configurado (llm.max-iterations) como "equilibrado".
+     */
+    private EffortPolicy effortPolicy(String effort) {
+        int base = this.maxIterations;
+        if (effort == null || effort.isBlank()) {
+            return new EffortPolicy(base, 0.0);
+        }
+        return switch (effort.toLowerCase(java.util.Locale.ROOT)) {
+            case "rapido", "rápido" -> new EffortPolicy(Math.max(2, base / 2), 0.0);
+            case "profundo" -> new EffortPolicy(Math.min(12, base * 2), 0.3);
+            default -> new EffortPolicy(base, 0.1); // equilibrado
+        };
     }
 }

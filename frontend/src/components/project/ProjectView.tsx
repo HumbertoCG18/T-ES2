@@ -26,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ViewHeader } from "@/components/layout/ViewHeader"
-import { ModelSelector } from "@/components/chat/ModelSelector"
 import { useStore } from "@/store/store"
 import type { Project } from "@/store/types"
 import { ProjectFiles } from "./ProjectFiles"
@@ -152,7 +151,6 @@ export function ProjectView({
         collapsed={collapsed}
         onExpand={onExpand}
         onOpenMobile={onOpenMobile}
-        right={<ModelSelector />}
       />
 
       <ScrollArea className="min-h-0 flex-1">

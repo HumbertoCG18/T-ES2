@@ -10,6 +10,7 @@ import { ArrowUp, Loader2, Paperclip, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip } from "@/components/ui/tooltip"
+import { ComposerControls } from "./ComposerControls"
 import { composerBus } from "@/lib/composerBus"
 import { formatBytes, readComposerAttachments } from "@/lib/files"
 import { quoteBus } from "@/lib/quoteBus"
@@ -136,39 +137,44 @@ export function Composer({ onSend, disabled, autoFocus }: ComposerProps) {
         </ul>
       )}
 
-      <div className="flex items-end gap-2 px-3 py-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFiles}
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-        <Tooltip label="Anexar arquivo" side="top">
-          <Button
-            variant="iconGhost"
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            aria-label="Anexar arquivo"
-            className="mb-0.5 shrink-0"
-          >
-            <Paperclip className="h-5 w-5" aria-hidden="true" />
-          </Button>
-        </Tooltip>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
 
-        <Textarea
-          ref={textareaRef}
-          rows={1}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Pergunte qualquer coisa…"
-          aria-label="Mensagem"
-          className="max-h-[220px] py-2"
-        />
+      <Textarea
+        ref={textareaRef}
+        rows={1}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Pergunte qualquer coisa…"
+        aria-label="Mensagem"
+        className="max-h-[220px] px-4 pt-3"
+      />
+
+      {/* Barra inferior: anexar + controles (modelo/esforço/raciocínio) à esquerda, enviar à direita. */}
+      <div className="flex items-end justify-between gap-2 px-2 pb-2 pt-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-1">
+          <Tooltip label="Anexar arquivo" side="top">
+            <Button
+              variant="iconGhost"
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled}
+              aria-label="Anexar arquivo"
+              className="shrink-0"
+            >
+              <Paperclip className="h-5 w-5" aria-hidden="true" />
+            </Button>
+          </Tooltip>
+          <ComposerControls />
+        </div>
         <Button
           variant="icon"
           type="button"

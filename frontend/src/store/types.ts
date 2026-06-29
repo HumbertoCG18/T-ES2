@@ -102,6 +102,26 @@ export const MODEL_TO_GATEWAY: Record<ModelId, string> = {
   "gemma3:4b": "chat-light",
 }
 
+/**
+ * Nível de esforço do agente: orçamento de iterações do ciclo agêntico + temperatura.
+ * Enviado ao /chat e mapeado no agent-service (AgentLoop.effortPolicy).
+ */
+export type Effort = "rapido" | "equilibrado" | "profundo"
+
+export const EFFORTS: { id: Effort; label: string; hint: string }[] = [
+  { id: "rapido", label: "Rápido", hint: "Poucas iterações; resposta direta." },
+  {
+    id: "equilibrado",
+    label: "Equilibrado",
+    hint: "Padrão: equilíbrio entre velocidade e profundidade.",
+  },
+  {
+    id: "profundo",
+    label: "Profundo",
+    hint: "Mais iterações do ciclo agêntico — raciocina e usa ferramentas com mais afinco.",
+  },
+]
+
 /** Fonte da interface. */
 export type FontPref = "sans" | "serif" | "mono"
 
@@ -111,6 +131,10 @@ export type ResponseStyle = "normal" | "conciso" | "detalhado"
 export interface Settings {
   theme: ThemePref
   model: ModelId
+  /** Nível de esforço do agente (orçamento de iterações + temperatura). */
+  effort?: Effort
+  /** Modo raciocínio: pede passos de raciocínio antes da resposta final. */
+  thinking?: boolean
   /** Fonte da interface (aplicada via [data-font] no <html>). */
   font?: FontPref
   /** Estilo de resposta preferido. */

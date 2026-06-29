@@ -336,9 +336,16 @@ function sanitize(raw: unknown): AppState {
       }))
     : []
 
+  const s: Partial<Settings> = data.settings ?? {}
   const settings: Settings = {
-    theme: data.settings?.theme ?? "system",
-    model: data.settings?.model ?? "llama3.1",
+    theme: s.theme ?? "system",
+    model: s.model ?? "llama3.1",
+    effort: s.effort ?? "equilibrado",
+    thinking: s.thinking ?? false,
+    font: s.font,
+    responseStyle: s.responseStyle,
+    instructions: s.instructions,
+    nickname: s.nickname,
   }
 
   // Valida a view persistida.
@@ -516,6 +523,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       sendChat(apiText, {
         conversationId,
         model: MODEL_TO_GATEWAY[s.settings.model],
+        effort: s.settings.effort,
+        thinking: s.settings.thinking,
         useMemory: conv?.useMemory,
         useRag: conv?.useRag,
       })

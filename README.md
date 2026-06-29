@@ -115,17 +115,20 @@ cd agent-service
 > agent-service as consome por `lb://` com circuit breaker. Com isso, **os 7 microsserviços existem**.
 >
 > **Capacidades extras** ✅ — rate limiting no gateway (HTTP 429), toggles de memória/RAG por conversa
-> (+ ver/limpar memória), saúde dos serviços ao vivo, upload de arquivo → indexação RAG, seletor de
-> modelo ligado ao `/chat`, citações das fontes nas respostas.
+> (+ ver/limpar memória), saúde dos serviços ao vivo, upload de arquivo → indexação RAG, **controles
+> do agente no input do chat (modelo · esforço · modo raciocínio) que chegam ao `/chat`** e mudam o
+> comportamento de verdade (orçamento de iterações + temperatura + raciocínio passo a passo no
+> `trace`), citações das fontes nas respostas.
 
 **Bônus (apoio à demo) — `frontend/`:** 🔨 app web estilo claude.ai (Vite + React + Tailwind +
 shadcn) consumindo `POST /chat` via gateway. Já feito: app shell + **views dedicadas Conversas /
 Projetos / Capacidades**, favoritos (projetos e chats), agrupamento de conversas por projeto,
 busca, configurações (tema, fonte, tipo de resposta, instruções), chat com markdown/LaTeX/**blocos
 de código**, **timeline** do ciclo agêntico (Pensamento vs passos), **citações**, **citar trecho**
-da resposta, editar/regenerar/copiar, anexos, projetos (instruções/memória/arquivos com **barra de
-capacidade** e excluir projeto), e aba **Infraestrutura** nas configurações (Entregas 4–7 visíveis,
-com link para RabbitMQ/Jaeger). **Polido em 3 passes** (design tokens semânticos, estados/skeletons,
+da resposta, editar/regenerar/copiar, anexos, **controles do agente no input do chat — modelo ·
+esforço (Rápido/Equilibrado/Profundo) · modo raciocínio — estilo Claude Code, ligados ao `/chat`**,
+projetos (instruções/memória/arquivos com **barra de capacidade** e excluir projeto), e aba
+**Infraestrutura** nas configurações (Entregas 4–7 visíveis, com link para RabbitMQ/Jaeger). **Polido em 3 passes** (design tokens semânticos, estados/skeletons,
 mobile/a11y, **logomark próprio**). Verificado ao vivo com LLM real + tool calling. Status em
 [`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
 

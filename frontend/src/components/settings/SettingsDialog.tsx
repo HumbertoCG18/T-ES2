@@ -24,12 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useStore } from "@/store/store"
-import {
-  FONT_OPTIONS,
-  MODELS,
-  RESPONSE_STYLES,
-  type ThemePref,
-} from "@/store/types"
+import { FONT_OPTIONS, RESPONSE_STYLES, type ThemePref } from "@/store/types"
 
 const APP_VERSION = "1.0.0"
 
@@ -142,7 +137,7 @@ function Segmented<T extends string>({
 }
 
 export function SettingsDialog({ children }: { children: ReactNode }) {
-  const { state, setTheme, setModel, updateSettings } = useStore()
+  const { state, setTheme, updateSettings } = useStore()
   const [open, setOpen] = useState(false)
 
   return (
@@ -163,9 +158,6 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
             </TabsTrigger>
             <TabsTrigger value="perfil" className="flex-1 shrink-0 min-w-fit">
               Personalização
-            </TabsTrigger>
-            <TabsTrigger value="modelo" className="flex-1 shrink-0 min-w-fit">
-              Modelo
             </TabsTrigger>
             <TabsTrigger value="infra" className="flex-1 shrink-0 min-w-fit">
               Infraestrutura
@@ -278,54 +270,6 @@ export function SettingsDialog({ children }: { children: ReactNode }) {
                 </p>
               </div>
             </div>
-          </TabsContent>
-
-          {/* ---------- Modelo ---------- */}
-          <TabsContent value="modelo">
-            <p className="mb-3 text-sm text-muted-foreground">
-              Modelo padrão para novas conversas.
-            </p>
-            <div
-              role="radiogroup"
-              aria-label="Modelo padrão"
-              className="flex flex-col gap-2"
-            >
-              {MODELS.map((m) => {
-                const selected = state.settings.model === m.id
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setModel(m.id)}
-                    className={cn(
-                      "flex items-center justify-between rounded-xl border px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                      selected
-                        ? "border-accent/50 bg-accent/[0.06]"
-                        : "border-border hover:bg-foreground/[0.03]",
-                    )}
-                  >
-                    <span className="font-mono text-sm font-medium text-foreground">
-                      {m.label}
-                    </span>
-                    <span
-                      className={cn(
-                        "h-4 w-4 rounded-full border-2",
-                        selected
-                          ? "border-accent bg-accent"
-                          : "border-muted-foreground/40",
-                      )}
-                      aria-hidden="true"
-                    />
-                  </button>
-                )
-              })}
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Salvo localmente. Observação: a API atual ainda não recebe o
-              modelo selecionado.
-            </p>
           </TabsContent>
 
           {/* ---------- Infraestrutura ---------- */}
