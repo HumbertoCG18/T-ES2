@@ -75,3 +75,9 @@ llm-gateway), o chat responde via `http://localhost:5173` e a timeline mostra o 
 Controles do composer verificados ao vivo (Docker Compose, `llama3.1`): **Profundo + Pensar** →
 `trace` com `orcamento 10 iteracoes, temperatura 0.3` + `modo raciocinio: ligado`, resposta em
 `Raciocinio:`/`Resposta:` e `calculator` ancorando `(12 + 8) * 3 → 60`.
+
+**No compose:** `frontend/Dockerfile` multi-stage (build Vite no Node → nginx serve o `dist/`) +
+`nginx.conf` (proxy `/api`→api-gateway, `proxy_buffering off` p/ streaming) + `.dockerignore`;
+serviço `frontend` no `docker-compose.yaml` (porta 5173). Assim o **site inteiro** sobe com
+`docker compose up`. Verificado ao vivo: 14 containers `Up`, `http://localhost:5173` → 200,
+`/api/services` via nginx → 200. `npm run dev` segue disponível para hot-reload da UI.

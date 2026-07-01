@@ -1,5 +1,6 @@
 # Plataforma de Agentes Conversacionais — orquestração completa (Entrega 5).
-# Sobe os 7 microsserviços + infra (Redis, PostgreSQL, ChromaDB, RabbitMQ) + Ollama.
+# Sobe os 7 microsserviços + frontend (UI) + infra (Redis, PostgreSQL, ChromaDB, RabbitMQ) + Ollama.
+#   Site: http://localhost:5173  (nginx serve a SPA e faz proxy de /api -> api-gateway:8080)
 # Tudo na mesma rede do compose; serviços se resolvem por nome (e por lb:// via Eureka).
 # 100% local, sem nuvem.
 #
@@ -191,6 +192,17 @@ services:
     depends_on:
       redis: { condition: service_healthy }
       name-server: { condition: service_started }
+    restart: unless-stopped
+
+  # ---------------- Frontend (UI) ----------------
+  # SPA (Vite/React) servida por nginx; /api faz proxy reverso pro api-gateway.
+  # Assim o site inteiro sobe com um único `docker compose up` (sem terminal à parte).
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports: ["5173:80"]
+    depends_on:
+      api-gateway: { condition: service_started }
     restart: unless-stopped
 
 volumes:

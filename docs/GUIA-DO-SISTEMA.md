@@ -107,26 +107,27 @@ Para o **modo dev** (rodar os serviços como processos, sem containers) precisa 
 
 ### Caminho A — Docker Compose (recomendado, um comando)
 
-Sobe os 7 serviços + toda a infra + Ollama + Jaeger.
+Sobe os 7 serviços + toda a infra + Ollama + Jaeger + **o frontend** — a plataforma inteira, sem
+abrir terminais à parte.
 
 ```bash
-# 1) Construir as imagens (1a vez, ~minutos)
-docker compose build
+# 1) Construir e subir tudo (1a vez ~minutos; builda 8 imagens, inclui o frontend)
+docker compose up -d --build
 
-# 2) Subir tudo
-docker compose up -d
-
-# 3) Baixar os modelos do Ollama uma vez (ficam no volume)
+# 2) Baixar os modelos do Ollama uma vez (ficam no volume)
 docker compose exec ollama ollama pull llama3.1
 docker compose exec ollama ollama pull embeddinggemma:300m
 
-# 4) Testar
+# 3) Abrir o site → http://localhost:5173   (ou testar a API direto:)
 curl http://localhost:8080/chat -H "Content-Type: application/json" \
   -d '{"message":"Quanto e (12 + 8) * 3? Use a calculadora."}'
 
 docker compose logs -f agent-service   # acompanhar
 docker compose down                     # parar (mantem dados/modelos)
 ```
+
+> Depois da 1a vez basta `docker compose up -d` (imagens já buildadas). Mexeu na UI?
+> `docker compose up -d --build frontend`.
 
 ### Caminho B — Modo dev (processos locais, hot-reload)
 
@@ -152,7 +153,7 @@ cd agent-service   && .\mvnw.cmd spring-boot:run    # 8081
 # retrieval-service (8083)
 cd retrieval-service && uv sync && uv run uvicorn app.main:app --port 8083
 
-# frontend (5173)
+# frontend (5173) — opcional: já sobe no Caminho A; use só para hot-reload da UI
 cd frontend && npm install && npm run dev
 ```
 

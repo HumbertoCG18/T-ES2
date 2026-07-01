@@ -26,14 +26,19 @@ englobando diagrama, benchmarks e discussão de riscos).
 
 ## Rodar tudo (Docker Compose) — recomendado
 
+O **site inteiro** — 7 serviços + infra + Ollama + Jaeger + **frontend** — sobe com **um comando**
+(sem abrir terminais à parte):
+
 ```bash
-docker compose build                 # 1a vez (~minutos)
-docker compose up -d                 # sobe os 7 serviços + infra + Ollama + Jaeger
-docker compose exec ollama ollama pull llama3.1
+docker compose up -d --build         # 1a vez (~minutos; builda 8 imagens, inclui o frontend)
+docker compose exec ollama ollama pull llama3.1          # 1a vez (fica no volume)
 docker compose exec ollama ollama pull embeddinggemma:300m
-curl http://localhost:8080/chat -H "Content-Type: application/json" -d '{"message":"oi"}'
-# Eureka :8761 · RabbitMQ :15672 (guest/guest) · Jaeger :16686
+# Site: http://localhost:5173 · Eureka :8761 · RabbitMQ :15672 (guest/guest) · Jaeger :16686
 ```
+
+Depois da 1a vez basta `docker compose up -d` (imagens já buildadas, sobe em segundos).
+`docker compose down` derruba (dados persistem nos volumes); `down -v` apaga os dados.
+Mexeu na UI? `docker compose up -d --build frontend`.
 
 ## Pré-requisitos
 
@@ -132,7 +137,8 @@ projetos (instruções/memória/arquivos com **barra de capacidade** e excluir p
 mobile/a11y, **logomark próprio**). Verificado ao vivo com LLM real + tool calling. Status em
 [`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
 
-Rodar o frontend (com a plataforma no ar):
+O frontend **já sobe no `docker compose up`** (nginx na porta 5173, faz proxy `/api` → gateway) —
+nenhum passo extra para a demo. Para iterar a UI com hot-reload, rode-o à parte em modo dev:
 ```bash
 cd frontend
 npm install     # primeira vez

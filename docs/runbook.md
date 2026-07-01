@@ -204,6 +204,10 @@ docker compose down                                   # parar (mantem volumes)
 docker compose down -v                                # parar e apagar dados/modelos
 ```
 
+> **Frontend no compose:** o `docker compose up` também sobe o serviço `frontend` (nginx servindo o
+> build, porta **5173**, proxy `/api`→gateway) — o site fica em http://localhost:5173, sem passo extra.
+> Na 1a vez use `docker compose up -d --build` (builda 8 imagens, inclui o frontend).
+
 > **Conflito de portas:** o compose mapeia as mesmas portas do modo "processos locais"
 > (8080–8084, 8761, 4000, infra). Não rode os dois ao mesmo tempo — pare os processos locais e os
 > containers de `infra/docker-compose.infra.yaml` antes de subir o compose completo.

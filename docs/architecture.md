@@ -14,7 +14,8 @@ Compose; alvo de produção é Kubernetes.
 ## Cliente (bônus, fora da spec)
 
 `frontend/` — app web estilo claude.ai (Vite + React + Tailwind + shadcn). Consome `POST /chat`
-via `api-gateway` (proxy de dev `/api` → `:8080`, com rewrite removendo `/api`). Não é exigido
+via `api-gateway` — proxy `/api` → `:8080` removendo o prefixo `/api` (Vite no dev; nginx no
+container do compose). Não é exigido
 pela spec; serve a teste e à demonstração. O "Cliente (HTTP)" do diagrama abaixo pode ser este
 frontend, `curl` ou Postman.
 
@@ -120,7 +121,8 @@ direto com o Ollama (`OLLAMA_BASE_URL`). Baixar exige internet (setup); o `/chat
   env; descoberta por nome/`lb://`. Modelos do Ollama puxados no volume. ADR 0012.
 
 Os serviços agora rodam tanto como **processos locais** (dev) quanto **em containers** (compose).
-O frontend (bônus) roda via `npm run dev` (fora do compose por ora).
+O frontend (bônus) também está no compose (nginx serve o build na porta 5173, com proxy `/api`→
+gateway); `npm run dev` fica como alternativa para hot-reload da UI.
 
 - **Entrega 7 — Produção em nuvem (K8s):** manifests em `k8s/` (Namespace, ConfigMap/Secret,
   Deployments/Services dos 7 serviços + infra + Jaeger, PVCs, Ingress) reusando as imagens e a config
