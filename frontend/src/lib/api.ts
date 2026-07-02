@@ -173,29 +173,37 @@ export async function pullOllamaModel(
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ""
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    let nl: number
-    while ((nl = buffer.indexOf("\n")) >= 0) {
-      const line = buffer.slice(0, nl).trim()
-      buffer = buffer.slice(nl + 1)
-      if (!line) continue
-      let evt: Record<string, unknown>
-      try {
-        evt = JSON.parse(line) as Record<string, unknown>
-      } catch {
-        continue // linha parcial/inválida
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      let nl: number
+      while ((nl = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, nl).trim()
+        buffer = buffer.slice(nl + 1)
+        if (!line) continue
+        let evt: Record<string, unknown>
+        try {
+          evt = JSON.parse(line) as Record<string, unknown>
+        } catch {
+          continue // linha parcial/inválida
+        }
+        if (typeof evt.error === "string") throw new Error(evt.error)
+        onProgress({
+          status: typeof evt.status === "string" ? evt.status : "",
+          digest: typeof evt.digest === "string" ? evt.digest : undefined,
+          total: typeof evt.total === "number" ? evt.total : undefined,
+          completed: typeof evt.completed === "number" ? evt.completed : undefined,
+        })
       }
-      if (typeof evt.error === "string") throw new Error(evt.error)
-      onProgress({
-        status: typeof evt.status === "string" ? evt.status : "",
-        digest: typeof evt.digest === "string" ? evt.digest : undefined,
-        total: typeof evt.total === "number" ? evt.total : undefined,
-        completed: typeof evt.completed === "number" ? evt.completed : undefined,
-      })
     }
+  } catch (err) {
+    // Cancelamento pelo usuário (AbortController) não é erro: encerra em silêncio.
+    if (signal?.aborted || (err instanceof DOMException && err.name === "AbortError")) return
+    throw err
+  } finally {
+    reader.releaseLock()
   }
 }
 

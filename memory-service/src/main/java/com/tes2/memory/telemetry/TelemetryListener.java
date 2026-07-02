@@ -21,16 +21,23 @@ public class TelemetryListener {
 
     @RabbitListener(queues = RabbitConfig.TELEMETRY_QUEUE)
     public void onEvent(TelemetryEventDto dto) {
-        List<String> tools = dto.toolsUsed() == null ? List.of() : dto.toolsUsed();
-        repository.save(new TelemetryEvent(
-                dto.conversationId(),
-                dto.latencyMs(),
-                dto.iterations(),
-                dto.ragHits(),
-                String.join(",", tools),
-                dto.model(),
-                dto.timestamp()));
-        log.info("Telemetria persistida: cid={} latency={}ms iter={} ragHits={} tools={}",
-                dto.conversationId(), dto.latencyMs(), dto.iterations(), dto.ragHits(), tools);
+        try {
+            List<String> tools = dto.toolsUsed() == null ? List.of() : dto.toolsUsed();
+            repository.save(new TelemetryEvent(
+                    dto.conversationId(),
+                    dto.latencyMs(),
+                    dto.iterations(),
+                    dto.ragHits(),
+                    String.join(",", tools),
+                    dto.model(),
+                    dto.timestamp()));
+            log.info("Telemetria persistida: cid={} latency={}ms iter={} ragHits={} tools={}",
+                    dto.conversationId(), dto.latencyMs(), dto.iterations(), dto.ragHits(), tools);
+        } catch (Exception ex) {
+            // Telemetria é best-effort: falha de persistência não deve gerar requeue infinito
+            // (mensagem malformada ou BD fora do ar). Loga e descarta.
+            log.warn("Falha ao persistir telemetria (descartada) cid={}: {}",
+                    dto == null ? null : dto.conversationId(), ex.toString());
+        }
     }
 }

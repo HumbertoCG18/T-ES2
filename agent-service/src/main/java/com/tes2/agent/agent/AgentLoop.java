@@ -147,7 +147,11 @@ public class AgentLoop {
 
             if (assistant.toolCalls() == null || assistant.toolCalls().isEmpty()) {
                 trace.add("resposta final na iteracao " + (i + 1));
-                finalReply = assistant.content();
+                // Conteudo nulo/vazio sem tool_calls e resposta degenerada do modelo; nao deixar
+                // cair no fallback de "limite de iteracoes" (linha abaixo), que mascara a causa.
+                finalReply = (assistant.content() == null || assistant.content().isBlank())
+                        ? "O modelo retornou uma resposta vazia."
+                        : assistant.content();
                 break;
             }
 
