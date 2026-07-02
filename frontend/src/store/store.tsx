@@ -560,13 +560,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const content = text.trim()
       if (!content && attachments.length === 0) return
       const s = stateRef.current
-      if (s.view.type !== "chat") return
+      if (s.view.type !== "chat" && s.view.type !== "project") return
 
-      let conversationId = s.view.conversationId
+      // Na view de projeto, enviar SEMPRE cria uma conversa nova dentro do projeto
+      // (CREATE_CONVERSATION já leva a view para o chat recém-criado).
+      let conversationId = s.view.type === "chat" ? s.view.conversationId : null
       let newProjectId: string | null = null
       if (conversationId == null) {
         conversationId = newId()
-        newProjectId = s.view.draftProjectId
+        newProjectId =
+          s.view.type === "project" ? s.view.projectId : s.view.draftProjectId
         const conv: Conversation = {
           id: conversationId,
           title: deriveTitle(content || attachments[0]?.name || ""),

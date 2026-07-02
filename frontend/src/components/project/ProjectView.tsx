@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import {
-  FolderClosed,
-  MessageSquare,
-  MoreHorizontal,
-  Plus,
-  Star,
-  Trash2,
-} from "lucide-react"
+import { FolderClosed, MessageSquare, MoreHorizontal, Star, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -26,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ViewHeader } from "@/components/layout/ViewHeader"
+import { Composer } from "@/components/chat/Composer"
 import { useStore } from "@/store/store"
 import type { Project } from "@/store/types"
 import { ProjectFiles } from "./ProjectFiles"
@@ -136,7 +130,7 @@ export function ProjectView({
   onExpand,
   onOpenMobile,
 }: ProjectViewProps) {
-  const { state, selectConversation, newConversation, deleteProject, toggleProjectFavorite } =
+  const { state, selectConversation, sendMessage, deleteProject, toggleProjectFavorite } =
     useStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -154,8 +148,8 @@ export function ProjectView({
       />
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="mx-auto w-full max-w-4xl px-4 py-8">
-          {/* Cabeçalho do projeto: nome editável + nova conversa. */}
+        <div className="mx-auto w-full max-w-5xl px-4 py-8">
+          {/* Cabeçalho do projeto: nome editável + menu de opções. */}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
               <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -164,35 +158,25 @@ export function ProjectView({
               </div>
               <EditableName project={project} />
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="default"
-                onClick={() => newConversation(project.id)}
-                className="h-9 gap-1.5"
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label="Opções do projeto"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=open]:bg-foreground/[0.05]"
               >
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Nova conversa neste projeto
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  aria-label="Opções do projeto"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=open]:bg-foreground/[0.05]"
-                >
-                  <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => toggleProjectFavorite(project.id)}>
-                    <Star aria-hidden="true" />
-                    {project.favorite ? "Remover dos favoritos" : "Favoritar"}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem danger onSelect={() => setConfirmOpen(true)}>
-                    <Trash2 aria-hidden="true" />
-                    Excluir projeto
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => toggleProjectFavorite(project.id)}>
+                  <Star aria-hidden="true" />
+                  {project.favorite ? "Remover dos favoritos" : "Favoritar"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem danger onSelect={() => setConfirmOpen(true)}>
+                  <Trash2 aria-hidden="true" />
+                  Excluir projeto
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -221,16 +205,15 @@ export function ProjectView({
             </DialogContent>
           </Dialog>
 
-          {/*
-           * TODO(entrega-3): instruções, memória e arquivos abaixo ainda são
-           * apenas UI + localStorage. Eles NÃO são enviados ao agente. O uso
-           * real liga no retrieval-service (RAG) e no memory-service.
-           */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-            {/* Coluna principal: instruções + memória + conversas. */}
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+            {/* Coluna central: input (cria conversa no projeto) + lista de conversas. */}
             <div className="flex min-w-0 flex-col gap-6">
-              <Instructions project={project} />
-              <ProjectMemory project={project} />
+              <div>
+                <h2 className="mb-2 px-1 text-sm font-medium text-foreground">
+                  Nova conversa neste projeto
+                </h2>
+                <Composer onSend={sendMessage} autoFocus />
+              </div>
 
               <section>
                 <h2 className="text-sm font-semibold text-foreground">
@@ -242,7 +225,8 @@ export function ProjectView({
                 <div className="mt-3 flex flex-col gap-1.5">
                   {conversations.length === 0 ? (
                     <p className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-                      Nenhuma conversa neste projeto ainda.
+                      Nenhuma conversa neste projeto ainda. Envie uma mensagem
+                      acima para começar.
                     </p>
                   ) : (
                     conversations.map((c) => (
@@ -270,8 +254,10 @@ export function ProjectView({
               </section>
             </div>
 
-            {/* Painel lateral: conhecimento (arquivos). */}
+            {/* Painel lateral: instruções + memória + conhecimento (arquivos). */}
             <aside className="flex flex-col gap-4">
+              <Instructions project={project} />
+              <ProjectMemory project={project} />
               <ProjectFiles project={project} />
             </aside>
           </div>
