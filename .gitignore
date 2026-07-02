@@ -49,3 +49,4 @@ dist/
 npm-debug.log*
 .CLAUDE.md
 CLAUDE.MD
+docs/explicacao-simples.md
