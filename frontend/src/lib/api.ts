@@ -17,6 +17,8 @@ export interface ChatOptions {
   thinking?: boolean
   useMemory?: boolean
   useRag?: boolean
+  /** Escopo da busca RAG: só documentos deste projeto. Ausente = busca global. */
+  projectId?: string
 }
 
 /**
@@ -31,6 +33,7 @@ export async function sendChat(message: string, opts: ChatOptions = {}): Promise
   if (opts.thinking) body.thinking = true
   if (opts.useMemory === false) body.useMemory = false
   if (opts.useRag === false) body.useRag = false
+  if (opts.projectId) body.projectId = opts.projectId
 
   let res: Response
   try {
@@ -97,16 +100,23 @@ export interface ToolInfo {
  * Envia um documento para indexação RAG (assíncrona) via api-gateway:
  * POST /api/documents/ingest → agent-service publica em document.ingest →
  * retrieval-service consome e indexa no ChromaDB. Responde 202 (indexação acontece depois).
+ * `fileName` vira metadado (file_name) — aparece nas citações e no inventário do projeto.
  */
 export async function ingestDocument(
   docId: string,
   projectId: string,
   text: string,
+  fileName?: string,
 ): Promise<void> {
   const res = await fetch("/api/documents/ingest", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ docId, projectId, text }),
+    body: JSON.stringify({
+      docId,
+      projectId,
+      text,
+      metadata: fileName ? { file_name: fileName } : undefined,
+    }),
   })
   if (!res.ok) throw new Error(`http_error_${res.status}`)
 }

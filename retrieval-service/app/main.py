@@ -71,3 +71,30 @@ async def search(req: SearchRequest) -> SearchResponse:
 async def delete_document(doc_id: str) -> dict:
     await run_in_threadpool(chroma.delete_doc, doc_id)
     return {"docId": doc_id, "deleted": True}
+
+
+@app.get("/projects/{project_id}/documents")
+async def project_documents(project_id: str) -> dict:
+    """Inventário dos documentos indexados de um projeto (nome, nº de chunks, prévia).
+
+    Usado pelo agent-service para o agente saber SEMPRE o que existe no conhecimento do
+    projeto — meta-perguntas ("o que tem no arquivo?") não dependem de similaridade semântica.
+    """
+    res = await run_in_threadpool(chroma.get_by_project, project_id)
+    docs: dict[str, dict] = {}
+    for meta, doc in zip(res.get("metadatas") or [], res.get("documents") or []):
+        m = meta or {}
+        doc_id = str(m.get("doc_id", ""))
+        if not doc_id:
+            continue
+        entry = docs.setdefault(
+            doc_id,
+            {"docId": doc_id, "fileName": m.get("file_name"), "chunks": 0, "preview": ""},
+        )
+        entry["chunks"] += 1
+        if m.get("file_name") and not entry["fileName"]:
+            entry["fileName"] = m.get("file_name")
+        # Prévia = início do chunk 0; se ele não vier no batch, usa o primeiro chunk disponível.
+        if doc and (m.get("chunk_index", 0) == 0 or not entry["preview"]):
+            entry["preview"] = doc[:300]
+    return {"documents": list(docs.values())}

@@ -36,17 +36,29 @@ export function ProjectFiles({ project }: { project: Project }) {
 
   const ingest = async (files: File[]) => {
     if (files.length === 0) return
+    setRagNote("Lendo arquivos…")
     const read = await readProjectFiles(files)
     addProjectFiles(project.id, read)
 
-    // Envia o texto para o RAG (assíncrono). Só arquivos de texto têm conteúdo indexável.
+    // Envia o texto para o RAG (assíncrono). Texto e PDF têm conteúdo indexável; outros
+    // binários (imagem, PDF escaneado) ficam só com metadados — avisar em vez de silenciar.
     const textFiles = read.filter((f) => f.text && f.text.trim())
-    if (textFiles.length === 0) return
+    const skipped = read.filter((f) => !f.text || !f.text.trim())
+    const skippedNote =
+      skipped.length > 0
+        ? ` ⚠ ${skipped.length} não indexado(s) — sem texto extraível (ex.: imagem/PDF escaneado): ${skipped.map((f) => f.name).join(", ")}.`
+        : ""
+    if (textFiles.length === 0) {
+      setRagNote(
+        `Nenhum arquivo indexável.${skippedNote} O agente só consulta conteúdo de texto (.txt, .md, .csv, .json…) e PDF com texto.`,
+      )
+      return
+    }
     setRagNote("Enviando para indexação…")
     let ok = 0
     await Promise.all(
       textFiles.map((f) =>
-        ingestDocument(f.id, project.id, f.text as string)
+        ingestDocument(f.id, project.id, f.text as string, f.name)
           .then(() => {
             ok += 1
           })
@@ -54,9 +66,10 @@ export function ProjectFiles({ project }: { project: Project }) {
       ),
     )
     setRagNote(
-      ok === textFiles.length
+      (ok === textFiles.length
         ? `${ok} arquivo(s) enviados para indexação (RAG).`
-        : `${ok}/${textFiles.length} indexados — verifique o retrieval-service/RabbitMQ.`,
+        : `${ok}/${textFiles.length} indexados — verifique o retrieval-service/RabbitMQ.`) +
+        skippedNote,
     )
   }
 
@@ -161,7 +174,7 @@ export function ProjectFiles({ project }: { project: Project }) {
           Arraste arquivos aqui ou clique para enviar
         </p>
         <p className="text-xs text-muted-foreground">
-          .txt, .md, .csv, .json e outros — vários de uma vez
+          .txt, .md, .csv, .json, .pdf e outros — vários de uma vez
         </p>
       </div>
 

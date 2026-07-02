@@ -65,6 +65,13 @@ services:
   ollama:
     image: ollama/ollama
     container_name: ollama
+    environment:
+      # Economia de RAM: descarrega o modelo apos 15min ocioso. Menor que isso pune demais a
+      # latencia (recarga medida: ~30s no proximo /chat); 15m mantem o modelo quente durante
+      # uma conversa/demo. Contexto fixo (KV cache limitado); max 2 modelos (chat + embeddings).
+      OLLAMA_KEEP_ALIVE: 15m
+      OLLAMA_CONTEXT_LENGTH: "4096"
+      OLLAMA_MAX_LOADED_MODELS: "2"
     ports: ["11434:11434"]
     volumes: ["ollama-models:/root/.ollama"]
     restart: unless-stopped
@@ -80,6 +87,8 @@ services:
     container_name: jaeger
     environment:
       COLLECTOR_OTLP_ENABLED: "true"   # recebe OTLP (HTTP 4318) dos serviços
+      # Armazenamento em memoria + sampling 100%: sem cap, a RAM cresce sem limite.
+      MEMORY_MAX_TRACES: "2000"
     ports:
       - "16686:16686"   # UI
       - "4318:4318"     # OTLP HTTP
@@ -89,6 +98,9 @@ services:
   name-server:
     build: ./name-server
     container_name: name-server
+    environment:
+      # Teto de heap: sem -Xmx a JVM dimensiona pela RAM do host e o RSS infla (~370MB -> ~200MB).
+      JAVA_OPTS: -Xmx256m -Xss512k
     ports: ["8761:8761"]
     restart: unless-stopped
 
@@ -113,6 +125,7 @@ services:
       REDIS_HOST: redis
       RABBITMQ_HOST: rabbitmq
       OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      JAVA_OPTS: -Xmx256m -Xss512k
     ports: ["8082:8082"]
     depends_on:
       postgres: { condition: service_healthy }
@@ -155,6 +168,7 @@ services:
       POSTGRES_PASSWORD: postgres
       RETRIEVAL_URL: lb://retrieval-service
       OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      JAVA_OPTS: -Xmx256m -Xss512k
     ports: ["8084:8084"]
     depends_on:
       postgres: { condition: service_healthy }
@@ -173,6 +187,8 @@ services:
       TOOLS_URL: lb://tool-registry
       OTLP_ENDPOINT: http://jaeger:4318/v1/traces
       OLLAMA_BASE_URL: http://ollama:11434
+      # Heap um pouco maior: proxy de pull de modelos (streaming) + montagem de contexto RAG.
+      JAVA_OPTS: -Xmx320m -Xss512k
     ports: ["8081:8081"]
     depends_on:
       rabbitmq: { condition: service_healthy }
@@ -188,6 +204,7 @@ services:
       EUREKA_URL: http://name-server:8761/eureka
       REDIS_HOST: redis
       OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      JAVA_OPTS: -Xmx256m -Xss512k
     ports: ["8080:8080"]
     depends_on:
       redis: { condition: service_healthy }

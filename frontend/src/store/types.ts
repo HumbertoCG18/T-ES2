@@ -88,17 +88,19 @@ export const PROJECT_KNOWLEDGE_LIMIT = 30_000_000 // ~28.6 MB
 /** Preferência de tema; "system" segue prefers-color-scheme. */
 export type ThemePref = "light" | "dark" | "system"
 
-/** Modelos disponíveis (cosmético por ora — ver TODO em api.ts). */
-export type ModelId = "llama3.1" | "gemma3:4b"
+/** Modelos disponíveis no seletor do composer. */
+export type ModelId = "llama3.1" | "llama3.2:3b" | "gemma3:4b"
 
 export const MODELS: { id: ModelId; label: string }[] = [
   { id: "llama3.1", label: "llama3.1" },
+  { id: "llama3.2:3b", label: "llama3.2:3b (rápido)" },
   { id: "gemma3:4b", label: "gemma3:4b" },
 ]
 
 /** Mapa do modelo (UI) → nome lógico no llm-gateway (config.yaml do LiteLLM). */
 export const MODEL_TO_GATEWAY: Record<ModelId, string> = {
   "llama3.1": "chat",
+  "llama3.2:3b": "chat-fast",
   "gemma3:4b": "chat-light",
 }
 

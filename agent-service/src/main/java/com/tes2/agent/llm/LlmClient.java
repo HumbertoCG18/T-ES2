@@ -5,6 +5,8 @@ import com.tes2.agent.llm.dto.ChatCompletionRequest;
 import com.tes2.agent.llm.dto.ChatCompletionResponse;
 import com.tes2.agent.llm.dto.ChatMessage;
 import com.tes2.agent.llm.dto.ToolSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -20,6 +22,7 @@ import java.util.List;
 @Component
 public class LlmClient {
 
+    private static final Logger log = LoggerFactory.getLogger(LlmClient.class);
     private static final String CB_NAME = "llmGateway";
 
     private final RestClient client;
@@ -59,6 +62,9 @@ public class LlmClient {
     }
 
     private ChatMessage completeFallback(Throwable t) {
+        // Logar a causa real: sem isso, timeout/erro na cadeia llm-gateway->Ollama vira
+        // fallback "indisponivel" sem pista nenhuma nos logs.
+        log.warn("Fallback do llmGateway acionado: {}", t.toString());
         // Sem tool_calls: o AgentLoop trata como resposta final e encerra o ciclo.
         return new ChatMessage(
                 "assistant",

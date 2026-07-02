@@ -20,7 +20,11 @@ pela spec; serve a teste e à demonstração. O "Cliente (HTTP)" do diagrama aba
 frontend, `curl` ou Postman.
 
 **Controles do agente por requisição (ADR 0015).** O contrato do `/chat` é
-`{ message, conversationId?, model?, effort?, thinking?, useMemory?, useRag? }`. Além do `model`
+`{ message, conversationId?, model?, effort?, thinking?, useMemory?, useRag?, projectId? }`.
+`projectId` (conversas dentro de um projeto) **restringe a busca RAG aos documentos daquele
+projeto** (filtro por metadado `project_id` no ChromaDB); ausente = busca global. O frontend
+extrai texto de **PDF no navegador** (pdfjs, import dinâmico) antes de ingerir — PDFs passam a
+ser indexáveis; binários sem texto (imagem, PDF escaneado) geram aviso na UI. Além do `model`
 (mapeado para o modelo lógico do `llm-gateway`), o cliente envia **`effort`**
 (`rapido|equilibrado|profundo` → orçamento de iterações do ciclo + temperatura, em
 `AgentLoop.effortPolicy`) e **`thinking`** (anexa raciocínio passo a passo ao system prompt). Ambos

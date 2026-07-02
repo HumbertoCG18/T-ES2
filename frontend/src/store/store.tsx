@@ -515,9 +515,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
    * Dispara a chamada ao agente e resolve o placeholder "pensando".
    * Envia conversationId, o modelo selecionado (mapeado p/ o llm-gateway) e os toggles
    * de memória/RAG da conversa. Lê o estado mais recente via stateRef (sem recriar o callback).
+   * `projectIdHint` cobre a 1ª mensagem de uma conversa recém-criada (o dispatch ainda não
+   * refletiu no stateRef, então o lookup da conversa falharia).
    */
   const runAgent = useCallback(
-    (conversationId: string, apiText: string, pendingId: string) => {
+    (conversationId: string, apiText: string, pendingId: string, projectIdHint?: string | null) => {
       const s = stateRef.current
       const conv = s.conversations.find((c) => c.id === conversationId)
       sendChat(apiText, {
@@ -527,6 +529,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         thinking: s.settings.thinking,
         useMemory: conv?.useMemory,
         useRag: conv?.useRag,
+        // Conversa dentro de um projeto: restringe a busca RAG aos documentos do projeto.
+        projectId: conv?.projectId ?? projectIdHint ?? undefined,
       })
         .then(({ reply, trace, citations }) => {
           dispatch({
@@ -559,12 +563,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (s.view.type !== "chat") return
 
       let conversationId = s.view.conversationId
+      let newProjectId: string | null = null
       if (conversationId == null) {
         conversationId = newId()
+        newProjectId = s.view.draftProjectId
         const conv: Conversation = {
           id: conversationId,
           title: deriveTitle(content || attachments[0]?.name || ""),
-          projectId: s.view.draftProjectId,
+          projectId: newProjectId,
           messages: [],
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -594,7 +600,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         messages: [userMsg, pendingMsg],
       })
 
-      runAgent(conversationId, buildAgentText(content, attachments), pendingId)
+      runAgent(conversationId, buildAgentText(content, attachments), pendingId, newProjectId)
     },
     [runAgent],
   )

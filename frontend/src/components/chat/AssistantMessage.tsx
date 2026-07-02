@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { AlertTriangle, Check, Copy, RefreshCw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -9,20 +10,51 @@ import { Markdown } from "./Markdown"
 import { MessageActionButton } from "./MessageActionButton"
 import { Trace } from "./Trace"
 
-function ThinkingDots() {
+/**
+ * Frases exibidas em rotação enquanto o agente processa — espelham as etapas reais do
+ * ciclo agêntico (memória → RAG → LLM → ferramentas → resposta). O backend não faz
+ * streaming do raciocínio; a rotação dá a sensação de progresso em tempo real.
+ */
+const THINKING_PHRASES = [
+  "Pensando",
+  "Consultando a memória",
+  "Buscando nos documentos",
+  "Raciocinando sobre a pergunta",
+  "Verificando as ferramentas",
+  "Escrevendo a resposta",
+]
+
+function ThinkingIndicator() {
+  const [phrase, setPhrase] = useState(0)
+
+  // Troca a frase a cada 2.4s (para no fim da lista — a última fica até a resposta chegar).
+  useEffect(() => {
+    const id = setInterval(
+      () => setPhrase((p) => Math.min(p + 1, THINKING_PHRASES.length - 1)),
+      2400,
+    )
+    return () => clearInterval(id)
+  }, [])
+
   return (
     <span
-      className="flex items-center gap-1.5 py-1.5"
+      className="flex items-center gap-2.5 py-1.5"
       role="status"
       aria-label="O agente está pensando"
     >
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="thinking-dot h-2 w-2 rounded-full bg-muted-foreground/60"
-          style={{ animationDelay: `${i * 0.16}s` }}
-        />
-      ))}
+      <span className="flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="thinking-dot h-1.5 w-1.5 rounded-full bg-accent"
+            style={{ animationDelay: `${i * 0.18}s` }}
+          />
+        ))}
+      </span>
+      {/* key = re-monta o span a cada troca → replay do fade-in */}
+      <span key={phrase} className="thinking-phrase text-sm text-muted-foreground">
+        {THINKING_PHRASES[phrase]}…
+      </span>
     </span>
   )
 }
@@ -53,7 +85,7 @@ export function AssistantMessage({
       </div>
 
       {message.pending ? (
-        <ThinkingDots />
+        <ThinkingIndicator />
       ) : message.error ? (
         <div className="flex flex-col gap-2.5">
           <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/[0.06] px-3.5 py-2.5 text-[0.95rem] leading-[1.6] text-foreground">

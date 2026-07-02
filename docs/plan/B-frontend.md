@@ -48,6 +48,16 @@ Context + useReducer com persistência em **localStorage** (sem backend novo). P
 - [x] **Memória** — seção de memória do projeto (notas/fatos persistentes).
 - [x] **Instruções** — seção de instruções custom do projeto.
 
+### Projetos × RAG (2026-07-02)
+- [x] **PDF indexável**: extração de texto no navegador (`pdfjs-dist`, import dinâmico — só baixa
+  ao anexar PDF); PDF escaneado (sem texto) cai como binário.
+- [x] **Aviso de não-indexável**: upload sem texto extraível mostra nota clara (antes era
+  silencioso — parecia bug: "o modelo não sabe do PDF").
+- [x] **Escopo por projeto no `/chat`**: conversa dentro de projeto envia `projectId`; o
+  agent-service filtra a busca RAG (`project_id` no ChromaDB) e o `trace` mostra
+  `projeto: busca RAG restrita ao projeto <id>`. Verificado ao vivo (conteúdo de outro projeto
+  não vaza; conteúdo do próprio projeto responde com citação).
+
 ### Mensagens / chat
 - [x] **Renderização LaTeX** (KaTeX via `remark-math` + `rehype-katex`).
 - [x] **Blocos de código** com realce de sintaxe + botão **copiar**.

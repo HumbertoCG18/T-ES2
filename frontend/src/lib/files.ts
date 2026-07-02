@@ -14,11 +14,52 @@ function extension(name: string): string {
   return i >= 0 ? name.slice(i + 1).toLowerCase() : ""
 }
 
-/** Heurística: o arquivo é texto legível? (PDF e binários ficam só com metadados.) */
+/** Heurística: o arquivo é texto legível? (binários ficam só com metadados; PDF tem extração própria.) */
 export function isTextFile(file: File): boolean {
   if (file.type.startsWith("text/")) return true
   if (file.type === "application/json") return true
   return TEXT_EXTENSIONS.includes(extension(file.name))
+}
+
+/** O arquivo é um PDF? (texto extraível via pdfjs — ver extractPdfText.) */
+export function isPdfFile(file: File): boolean {
+  return file.type === "application/pdf" || extension(file.name) === "pdf"
+}
+
+/**
+ * Extrai o texto de um PDF no navegador (pdfjs-dist). Import dinâmico: a lib (~1MB) só é
+ * baixada quando o usuário de fato anexa um PDF. PDFs escaneados (só imagem) retornam texto
+ * vazio — o chamador trata como binário não-indexável.
+ */
+export async function extractPdfText(file: File): Promise<string> {
+  const pdfjs = await import("pdfjs-dist")
+  const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url")
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default
+
+  const task = pdfjs.getDocument({ data: await file.arrayBuffer() })
+  const doc = await task.promise
+  try {
+    const parts: string[] = []
+    let total = 0
+    for (let i = 1; i <= doc.numPages && total < MAX_TEXT_BYTES; i++) {
+      const page = await doc.getPage(i)
+      const content = await page.getTextContent()
+      const pageText = content.items
+        .map((it) => ("str" in it ? it.str : ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim()
+      if (pageText) {
+        parts.push(pageText)
+        total += pageText.length
+      }
+    }
+    const text = parts.join("\n\n")
+    // Trunca para não estourar a cota do localStorage (mesma regra dos arquivos de texto).
+    return text.length > MAX_TEXT_BYTES ? text.slice(0, MAX_TEXT_BYTES) : text
+  } finally {
+    void task.destroy()
+  }
 }
 
 /** Tamanho legível: B / KB / MB / GB. */
@@ -48,12 +89,29 @@ function readAsText(file: File): Promise<string> {
   })
 }
 
+/** Extrai o conteúdo de texto do arquivo: texto direto, PDF via pdfjs, binário = undefined. */
+async function readFileText(file: File): Promise<string | undefined> {
+  try {
+    if (isTextFile(file)) return await readAsText(file)
+    if (isPdfFile(file)) {
+      const text = await extractPdfText(file)
+      // PDF escaneado (só imagem) não tem texto extraível → tratar como binário.
+      return text.trim() ? text : undefined
+    }
+  } catch (err) {
+    // Falha de leitura individual não derruba o lote — fica só com metadados.
+    // Logar: falha silenciosa aqui já mascarou um bug real (worker do pdfjs com MIME errado).
+    console.warn(`[files] Falha ao extrair texto de "${file.name}":`, err)
+  }
+  return undefined
+}
+
 /**
- * Lê uma lista de arquivos. Texto vira `text` (truncado); binários ficam só
- * com metadados. Falhas de leitura individuais não derrubam o lote.
+ * Lê uma lista de arquivos. Texto (e PDF com texto) vira `text` (truncado);
+ * binários ficam só com metadados. Falhas individuais não derrubam o lote.
  */
 export async function readProjectFiles(files: File[]): Promise<ProjectFile[]> {
-  const out = await Promise.all(
+  return Promise.all(
     files.map(async (file): Promise<ProjectFile> => {
       const base: ProjectFile = {
         id: newId(),
@@ -61,18 +119,13 @@ export async function readProjectFiles(files: File[]): Promise<ProjectFile[]> {
         size: file.size,
         type: file.type,
       }
-      if (!isTextFile(file)) return base
-      try {
-        return { ...base, text: await readAsText(file) }
-      } catch {
-        return base
-      }
+      const text = await readFileText(file)
+      return text !== undefined ? { ...base, text } : base
     }),
   )
-  return out
 }
 
-/** Lê arquivos como anexos do composer (mesma estratégia de texto/binário). */
+/** Lê arquivos como anexos do composer (mesma estratégia: texto/PDF/binário). */
 export async function readComposerAttachments(
   files: File[],
 ): Promise<ComposerAttachment[]> {
@@ -83,12 +136,8 @@ export async function readComposerAttachments(
         size: file.size,
         type: file.type,
       }
-      if (!isTextFile(file)) return base
-      try {
-        return { ...base, text: await readAsText(file) }
-      } catch {
-        return base
-      }
+      const text = await readFileText(file)
+      return text !== undefined ? { ...base, text } : base
     }),
   )
 }

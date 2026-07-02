@@ -1,6 +1,8 @@
 package com.tes2.agent.retrieval;
 
 import com.tes2.agent.retrieval.dto.Hit;
+import com.tes2.agent.retrieval.dto.ProjectDoc;
+import com.tes2.agent.retrieval.dto.ProjectDocumentsResponse;
 import com.tes2.agent.retrieval.dto.SearchRequest;
 import com.tes2.agent.retrieval.dto.SearchResponse;
 import java.util.List;
@@ -46,5 +48,27 @@ public class RetrievalClient {
                 .retrieve()
                 .body(SearchResponse.class);
         return (resp == null || resp.hits() == null) ? List.of() : resp.hits();
+    }
+
+    /**
+     * Inventário dos documentos indexados de um projeto (nome + prévia). Permite ao agente
+     * responder meta-perguntas ("o que tem neste projeto/arquivo?") sem depender de
+     * similaridade semântica. Fallback: lista vazia (o agente segue sem inventário).
+     */
+    public List<ProjectDoc> projectDocuments(String projectId) {
+        return circuitBreakerFactory.create(CB_NAME).run(
+                () -> {
+                    ProjectDocumentsResponse resp = client.get()
+                            .uri("/projects/{id}/documents", projectId)
+                            .retrieve()
+                            .body(ProjectDocumentsResponse.class);
+                    return (resp == null || resp.documents() == null)
+                            ? List.<ProjectDoc>of()
+                            : resp.documents();
+                },
+                t -> {
+                    log.warn("Falha ao listar documentos do projeto {}: {}", projectId, t.toString());
+                    return List.of();
+                });
     }
 }

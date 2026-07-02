@@ -10,6 +10,7 @@ import com.tes2.agent.llm.dto.ToolSpec;
 import com.tes2.agent.memory.MemoryClient;
 import com.tes2.agent.retrieval.RetrievalClient;
 import com.tes2.agent.retrieval.dto.Hit;
+import com.tes2.agent.retrieval.dto.ProjectDoc;
 import com.tes2.agent.telemetry.TelemetryEventDto;
 import com.tes2.agent.telemetry.TelemetryProducer;
 import com.tes2.agent.tools.ToolRegistryClient;
@@ -93,7 +94,8 @@ public class AgentLoop {
     }
 
     public AgentResult run(String conversationId, String userMessage, String model,
-                           boolean useMemory, boolean useRag, String effort, boolean thinking) {
+                           boolean useMemory, boolean useRag, String effort, boolean thinking,
+                           String projectId) {
         long startedAt = System.currentTimeMillis();
         String effectiveModel = (model == null || model.isBlank()) ? this.model : model;
         EffortPolicy policy = effortPolicy(effort);
@@ -116,12 +118,41 @@ public class AgentLoop {
             }
         }
 
+        // Conversa dentro de um projeto: injeta SEMPRE o inventário dos documentos indexados
+        // (nome + previa). Meta-perguntas ("o que tem no arquivo/projeto?") nao dependem de
+        // similaridade semantica — o agente sabe o que existe mesmo sem hit de busca.
+        if (useRag && projectId != null) {
+            List<ProjectDoc> docs = retrievalClient.projectDocuments(projectId);
+            if (!docs.isEmpty()) {
+                StringBuilder inv = new StringBuilder(
+                        "Conhecimento deste projeto — documentos disponiveis (nome · inicio do conteudo):\n");
+                for (ProjectDoc d : docs) {
+                    String label = (d.fileName() == null || d.fileName().isBlank()) ? d.docId() : d.fileName();
+                    inv.append("- ").append(label);
+                    if (d.preview() != null && !d.preview().isBlank()) {
+                        inv.append(" · \"").append(d.preview()).append("...\"");
+                    }
+                    inv.append('\n');
+                }
+                inv.append("Se o usuario perguntar o que ha no projeto/arquivo ou pedir um resumo, ")
+                        .append("responda com base nesta lista e no contexto recuperado — nao diga que nao tem acesso.");
+                messages.add(ChatMessage.system(inv.toString()));
+                trace.add("projeto: " + docs.size() + " documento(s) no conhecimento do projeto");
+            } else {
+                trace.add("projeto: nenhum documento indexado neste projeto");
+            }
+        }
+
         // RAG (toggle por conversa): so injeta trechos ACIMA do limiar de relevancia.
+        // projectId presente = busca com escopo (so documentos daquele projeto); nulo = global.
         List<Hit> hits = useRag
-                ? retrievalClient.search(userMessage, ragTopK, null).stream()
+                ? retrievalClient.search(userMessage, ragTopK, projectId).stream()
                         .filter(h -> h.score() >= ragMinScore)
                         .toList()
                 : List.of();
+        if (projectId != null) {
+            trace.add("projeto: busca RAG restrita ao projeto " + projectId);
+        }
         if (!hits.isEmpty()) {
             StringBuilder ctx = new StringBuilder(
                     "Contexto recuperado dos documentos do usuario (use se for relevante; nao invente):\n");
@@ -137,6 +168,14 @@ public class AgentLoop {
         // Gating de ferramenta: so oferecemos as ferramentas (do tool-registry) ao LLM quando a
         // mensagem parece precisar (digito, ou palavra-chave de data/dados).
         List<ToolSpec> activeTools = needsTools(userMessage) ? toolRegistryClient.specs() : null;
+
+        // Contexto RAG ja injetado => pergunta respondivel pelo documento. Nao oferecer
+        // ferramenta nenhuma: (1) knowledge_search seria a mesma busca 2x (uma iteracao
+        // extra inteira do LLM); (2) as specs das 7 ferramentas custam ~600-800 tokens de
+        // prompt — em CPU local (~15 tok/s de prompt eval) isso e ~1min so de overhead.
+        if (activeTools != null && !hits.isEmpty()) {
+            activeTools = null;
+        }
 
         String finalReply = null;
         int iterations = 0;
@@ -182,11 +221,14 @@ public class AgentLoop {
                 effectiveModel, Instant.now()));
 
         // Citacoes: os trechos do RAG efetivamente injetados como contexto.
+        // Prefere o nome do arquivo (file_name, enviado pelo frontend) ao id interno.
         List<Citation> citations = hits.stream()
                 .map(h -> new Citation(
                         h.text(),
                         h.score(),
-                        h.metadata() == null ? "" : String.valueOf(h.metadata().getOrDefault("doc_id", ""))))
+                        h.metadata() == null ? "" : String.valueOf(
+                                h.metadata().getOrDefault("file_name",
+                                        h.metadata().getOrDefault("doc_id", "")))))
                 .toList();
 
         return new AgentResult(finalReply, trace, citations);
@@ -206,7 +248,8 @@ public class AgentLoop {
             // text_stats
             "palavra", "caracter", "texto", "linha",
             // knowledge_search
-            "documento", "conhecimento", "busca", "procure", "pesquise"
+            "documento", "conhecimento", "busca", "procure", "pesquise",
+            "arquivo", "pdf", "resum", "conteudo", "conteúdo"
     };
 
     /**

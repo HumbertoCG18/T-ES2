@@ -34,14 +34,20 @@ public class ChatController {
         // Modo raciocínio (thinking): ausente => desligado.
         boolean thinking = request.thinking() != null && request.thinking();
 
+        // projectId em branco = sem escopo (busca RAG global).
+        String projectId = (request.projectId() == null || request.projectId().isBlank())
+                ? null
+                : request.projectId();
+
         AgentResult result = agentLoop.run(conversationId, request.message(), request.model(),
-                useMemory, useRag, request.effort(), thinking);
+                useMemory, useRag, request.effort(), thinking, projectId);
         return new ChatResponse(conversationId, result.reply(), result.trace(), result.citations());
     }
 
     /**
      * effort: "rapido" | "equilibrado" | "profundo" — controla o orçamento de iterações do
      * ciclo agêntico e a temperatura. thinking: pede raciocínio passo a passo na resposta.
+     * projectId: escopo da busca RAG (só documentos do projeto); ausente = busca global.
      */
     public record ChatRequest(
             @NotBlank String message,
@@ -50,7 +56,8 @@ public class ChatController {
             Boolean useMemory,
             Boolean useRag,
             String effort,
-            Boolean thinking) {
+            Boolean thinking,
+            String projectId) {
     }
 
     public record ChatResponse(

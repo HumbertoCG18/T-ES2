@@ -57,3 +57,12 @@ def query(query_embeddings: list[list[float]], n_results: int,
 
 def delete_doc(doc_id: str) -> None:
     get_collection().delete(where={"doc_id": doc_id})
+
+
+def get_by_project(project_id: str, limit: int = 500) -> dict:
+    """Todos os chunks de um projeto (p/ o inventário de documentos do agente)."""
+    return get_collection().get(
+        where={"project_id": project_id},
+        limit=limit,
+        include=["metadatas", "documents"],
+    )

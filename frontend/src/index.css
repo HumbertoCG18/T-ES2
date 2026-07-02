@@ -189,22 +189,38 @@ html[data-font="mono"] {
   }
 }
 
-/* ---------- Indicador "pensando" — três pontos pulsando ---------- */
+/* ---------- Indicador "pensando" — onda de três pontos + frase rotativa ---------- */
 @keyframes thinking-pulse {
   0%,
-  80%,
+  70%,
   100% {
-    opacity: 0.25;
-    transform: translateY(0);
+    opacity: 0.3;
+    transform: translateY(0) scale(1);
   }
-  40% {
+  35% {
     opacity: 1;
-    transform: translateY(-2px);
+    transform: translateY(-3px) scale(1.25);
   }
 }
 
 .thinking-dot {
-  animation: thinking-pulse 1.2s ease-in-out infinite;
+  animation: thinking-pulse 1.1s ease-in-out infinite;
+}
+
+/* Frase do indicador: entra com fade + leve deslize a cada troca (re-montada via key). */
+@keyframes thinking-phrase-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.thinking-phrase {
+  animation: thinking-phrase-in 0.35s ease-out;
 }
 
 /* ---------- Overlays (dialog / dropdown) ---------- */
@@ -492,5 +508,9 @@ html[data-font="mono"] {
   .thinking-dot {
     animation: none;
     opacity: 0.6;
+  }
+
+  .thinking-phrase {
+    animation: none;
   }
 }
