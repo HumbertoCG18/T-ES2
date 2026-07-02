@@ -121,6 +121,18 @@ export async function ingestDocument(
   if (!res.ok) throw new Error(`http_error_${res.status}`)
 }
 
+/**
+ * Remove um documento do índice RAG (de-ingestão) via api-gateway:
+ * DELETE /api/documents/{docId} → agent-service → retrieval-service remove do ChromaDB.
+ * O docId é o mesmo id do arquivo (ProjectFile.id) usado na ingestão.
+ */
+export async function deleteRagDocument(docId: string): Promise<void> {
+  const res = await fetch(`/api/documents/${encodeURIComponent(docId)}`, {
+    method: "DELETE",
+  })
+  if (!res.ok) throw new Error(`http_error_${res.status}`)
+}
+
 // ---------- Modelos do Ollama (administração; via /api/models → agent-service) ----------
 
 /** Modelo instalado no Ollama (subset de GET /api/tags). */

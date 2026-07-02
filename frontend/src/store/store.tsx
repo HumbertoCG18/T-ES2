@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react"
 
-import { sendChat } from "@/lib/api"
+import { deleteRagDocument, sendChat } from "@/lib/api"
 import { buildAgentText } from "@/lib/files"
 import { newId } from "@/lib/id"
 import type {
@@ -726,6 +726,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const removeProjectFile = useCallback((id: string, fileId: string) => {
     dispatch({ type: "REMOVE_PROJECT_FILE", id, fileId })
+    // De-ingesta do RAG (best-effort): o docId no retrieval é o próprio fileId.
+    // A remoção da UI acontece de qualquer forma; falha de rede só é ignorada.
+    deleteRagDocument(fileId).catch(() => {})
   }, [])
 
   const deleteProject = useCallback((id: string) => {

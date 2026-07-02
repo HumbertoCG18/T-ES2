@@ -71,4 +71,20 @@ public class RetrievalClient {
                     return List.of();
                 });
     }
+
+    /** Remove um documento do índice RAG. Best-effort: falha só loga (não propaga ao cliente). */
+    public void deleteDocument(String docId) {
+        circuitBreakerFactory.create(CB_NAME).run(
+                () -> {
+                    client.delete()
+                            .uri("/documents/{id}", docId)
+                            .retrieve()
+                            .toBodilessEntity();
+                    return null;
+                },
+                t -> {
+                    log.warn("Falha ao remover documento {} do RAG: {}", docId, t.toString());
+                    return null;
+                });
+    }
 }
