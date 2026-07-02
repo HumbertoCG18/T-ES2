@@ -10,7 +10,7 @@ class Settings:
     # --- Embeddings (via llm-gateway / LiteLLM, OpenAI-compatível) ---
     llm_base_url: str = os.getenv("LLM_BASE_URL", "http://localhost:4000")
     embeddings_model: str = os.getenv("EMBEDDINGS_MODEL", "embeddings")  # nome lógico no llm-gateway
-    embeddings_timeout: float = float(os.getenv("EMBEDDINGS_TIMEOUT", "600"))  # LLM local é lento
+    embeddings_timeout: float = float(os.getenv("EMBEDDINGS_TIMEOUT", "120"))  # read timeout; embeddinggemma:300m é rápido
 
     # --- ChromaDB (container servidor, HttpClient) ---
     chroma_host: str = os.getenv("CHROMA_HOST", "localhost")

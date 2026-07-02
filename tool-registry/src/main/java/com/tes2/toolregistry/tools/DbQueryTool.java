@@ -16,15 +16,22 @@ import org.springframework.stereotype.Component;
 public class DbQueryTool implements Tool {
 
     private static final int MAX_ROWS = 20;
+    private static final int FETCH_CAP = 1000;   // teto de linhas trazidas do BD (evita OOM)
+    private static final int QUERY_TIMEOUT_S = 5; // barra pg_sleep e joins gigantes
     private static final List<String> FORBIDDEN = List.of(
             "insert", "update", "delete", "drop", "alter", "create", "truncate",
-            "grant", "revoke", "copy", "call", "merge", "comment", "vacuum");
+            "grant", "revoke", "copy", "call", "merge", "comment", "vacuum",
+            // Funções perigosas (SELECT-based): DoS e leitura de arquivos do servidor.
+            "pg_sleep", "pg_read_file", "pg_read_binary_file", "pg_ls_dir",
+            "lo_import", "lo_export", "dblink");
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final JdbcTemplate jdbc;
 
     public DbQueryTool(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
+        this.jdbc.setMaxRows(FETCH_CAP);
+        this.jdbc.setQueryTimeout(QUERY_TIMEOUT_S);
     }
 
     @Override

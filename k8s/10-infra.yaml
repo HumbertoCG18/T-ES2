@@ -169,6 +169,11 @@ spec:
       containers:
         - name: ollama
           image: ollama/ollama
+          # Paridade com docker-compose: mantém o modelo quente e limita KV cache / nº de modelos.
+          env:
+            - { name: OLLAMA_KEEP_ALIVE, value: "15m" }
+            - { name: OLLAMA_CONTEXT_LENGTH, value: "4096" }
+            - { name: OLLAMA_MAX_LOADED_MODELS, value: "2" }
           ports: [{ containerPort: 11434 }]
           # GPU (producao): adicionar resources.limits."nvidia.com/gpu": 1 + node com GPU.
           resources:

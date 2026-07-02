@@ -26,7 +26,8 @@ public class GatewayRoutesConfig {
     KeyResolver ipKeyResolver() {
         return exchange -> Mono.just(
                 Optional.ofNullable(exchange.getRequest().getRemoteAddress())
-                        .map(addr -> addr.getAddress().getHostAddress())
+                        .map(java.net.InetSocketAddress::getAddress)   // pode ser null (host não resolvido)
+                        .map(java.net.InetAddress::getHostAddress)     // só roda se getAddress != null
                         .orElse("unknown"));
     }
 

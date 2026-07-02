@@ -5,6 +5,7 @@ então um único modelo de embeddings serve a coleção toda. Espaço = cosseno.
 Os embeddings são pré-computados (embedding_function=None): quem embeda é este serviço.
 """
 
+import threading
 from typing import Any, Optional
 
 import chromadb
@@ -12,17 +13,23 @@ import chromadb
 from app.config import settings
 
 _collection = None
+_lock = threading.Lock()
 
 
 def get_collection():
+    # Double-checked locking: get_collection roda no threadpool (run_in_threadpool), então
+    # múltiplas threads podem entrar juntas na 1ª chamada e criar vários HttpClient. O lock
+    # garante uma única inicialização da coleção.
     global _collection
     if _collection is None:
-        client = chromadb.HttpClient(host=settings.chroma_host, port=settings.chroma_port)
-        _collection = client.get_or_create_collection(
-            name=settings.chroma_collection,
-            embedding_function=None,
-            metadata={"hnsw:space": "cosine"},
-        )
+        with _lock:
+            if _collection is None:
+                client = chromadb.HttpClient(host=settings.chroma_host, port=settings.chroma_port)
+                _collection = client.get_or_create_collection(
+                    name=settings.chroma_collection,
+                    embedding_function=None,
+                    metadata={"hnsw:space": "cosine"},
+                )
     return _collection
 
 
