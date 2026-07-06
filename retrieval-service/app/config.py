@@ -29,6 +29,8 @@ class Settings:
     rabbitmq_password: str = os.getenv("RABBITMQ_PASSWORD", "guest")
     ingest_queue: str = os.getenv("INGEST_QUEUE", "document.ingest")
     messaging_enabled: bool = os.getenv("MESSAGING_ENABLED", "true").lower() == "true"
+    # Intervalo entre tentativas de (re)conexão ao broker (boot race + quedas em produção).
+    rabbitmq_reconnect_seconds: int = int(os.getenv("RABBITMQ_RECONNECT_SECONDS", "5"))
 
     # --- Identidade / discovery ---
     service_name: str = os.getenv("SERVICE_NAME", "retrieval-service")

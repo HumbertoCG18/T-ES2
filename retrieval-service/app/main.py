@@ -4,10 +4,15 @@ Endpoints: /health, /ingest, /search, /documents/{docId}.
 Registra-se no Eureka no startup (lifespan) e desregistra no shutdown.
 """
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
+
+# Loggers da app (retrieval.*) em INFO — sem isso, "Consumindo fila"/"Indexado via fila"
+# somem (root logger default é WARNING; o uvicorn só configura os loggers dele).
+logging.basicConfig(level=logging.INFO)
 
 from app import chroma, consumer, embeddings, eureka, rag_index
 from app.config import settings

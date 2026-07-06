@@ -93,6 +93,16 @@ public class DbQueryTool implements Tool {
         if (sql.contains(";") || lower.contains("--") || lower.contains("/*")) {
             return "caracteres proibidos (; ou comentarios)";
         }
+        // Bloqueia catalogos do sistema: a conexao e superuser (postgres) e sem isto um SELECT
+        // "seguro" em pg_authid/pg_shadow exfiltra hashes de senha. As tabelas legitimas
+        // (conversation_message, telemetry_event) nunca referenciam pg_*/information_schema.
+        // Correcao completa (evolucao): role read-only sem acesso a catalogos. Ver relatorio, riscos.
+        if (lower.matches("(?s).*\\bpg_\\w+.*")) {
+            return "acesso a catalogos do sistema (pg_*) proibido";
+        }
+        if (lower.contains("information_schema")) {
+            return "acesso a information_schema proibido";
+        }
         for (String kw : FORBIDDEN) {
             if (lower.matches("(?s).*\\b" + kw + "\\b.*")) {
                 return "operacao proibida: " + kw;
