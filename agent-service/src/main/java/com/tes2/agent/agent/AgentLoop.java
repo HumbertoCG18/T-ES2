@@ -14,9 +14,13 @@ import com.tes2.agent.retrieval.dto.ProjectDoc;
 import com.tes2.agent.telemetry.TelemetryEventDto;
 import com.tes2.agent.telemetry.TelemetryProducer;
 import com.tes2.agent.tools.ToolRegistryClient;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -62,8 +66,11 @@ public class AgentLoop {
             escreva "Resposta:" com a conclusao final, clara e direta. Seja conciso no raciocinio.
             """;
 
-    /** Politica de esforco: orcamento de iteracoes do ciclo agentico + temperatura. */
-    private record EffortPolicy(int iterationBudget, double temperature) {}
+    /**
+     * Politica de esforco: orcamento de iteracoes do ciclo agentico + temperatura + teto de
+     * tokens de saida (tempo de geracao e linear nos tokens gerados; "rapido" corta cedo).
+     */
+    private record EffortPolicy(int iterationBudget, double temperature, int maxTokens) {}
 
     private final LlmClient llmClient;
     private final ToolRegistryClient toolRegistryClient;
@@ -109,9 +116,31 @@ public class AgentLoop {
             trace.add("modo raciocinio: ligado");
         }
 
+        // Pre-LLM em PARALELO: historico, inventario do projeto, busca RAG e specs de
+        // ferramentas sao independentes entre si e cada um ja tem circuit breaker + fallback
+        // proprio. Sequencial custava a soma (~300-400ms); em paralelo custa o mais lento.
+        // O ContextSnapshot leva o contexto de trace (ThreadLocal) para as threads do pool —
+        // sem ele os client spans virariam traces orfaos no Jaeger.
+        ContextSnapshot snapshot = ContextSnapshotFactory.builder().build().captureAll();
+        CompletableFuture<List<ChatMessage>> historyF = useMemory
+                ? CompletableFuture.supplyAsync(inContext(snapshot,
+                        () -> memoryClient.recentHistory(conversationId, historyLimit)))
+                : CompletableFuture.completedFuture(List.of());
+        CompletableFuture<List<ProjectDoc>> projectDocsF = (useRag && projectId != null)
+                ? CompletableFuture.supplyAsync(inContext(snapshot,
+                        () -> retrievalClient.projectDocuments(projectId)))
+                : CompletableFuture.completedFuture(List.of());
+        CompletableFuture<List<Hit>> hitsF = useRag
+                ? CompletableFuture.supplyAsync(inContext(snapshot,
+                        () -> retrievalClient.search(userMessage, ragTopK, projectId)))
+                : CompletableFuture.completedFuture(List.of());
+        CompletableFuture<List<ToolSpec>> specsF = needsTools(userMessage)
+                ? CompletableFuture.supplyAsync(inContext(snapshot, toolRegistryClient::specs))
+                : CompletableFuture.completedFuture(null);
+
         // Memoria (toggle por conversa): historico recente, antes da mensagem atual.
         if (useMemory) {
-            List<ChatMessage> history = memoryClient.recentHistory(conversationId, historyLimit);
+            List<ChatMessage> history = historyF.join();
             if (!history.isEmpty()) {
                 messages.addAll(history);
                 trace.add("memoria: " + history.size() + " mensagens de historico carregadas");
@@ -122,7 +151,7 @@ public class AgentLoop {
         // (nome + previa). Meta-perguntas ("o que tem no arquivo/projeto?") nao dependem de
         // similaridade semantica — o agente sabe o que existe mesmo sem hit de busca.
         if (useRag && projectId != null) {
-            List<ProjectDoc> docs = retrievalClient.projectDocuments(projectId);
+            List<ProjectDoc> docs = projectDocsF.join();
             if (!docs.isEmpty()) {
                 StringBuilder inv = new StringBuilder(
                         "Conhecimento deste projeto — documentos disponiveis (nome · inicio do conteudo):\n");
@@ -145,11 +174,9 @@ public class AgentLoop {
 
         // RAG (toggle por conversa): so injeta trechos ACIMA do limiar de relevancia.
         // projectId presente = busca com escopo (so documentos daquele projeto); nulo = global.
-        List<Hit> hits = useRag
-                ? retrievalClient.search(userMessage, ragTopK, projectId).stream()
-                        .filter(h -> h.score() >= ragMinScore)
-                        .toList()
-                : List.of();
+        List<Hit> hits = hitsF.join().stream()
+                .filter(h -> h.score() >= ragMinScore)
+                .toList();
         if (projectId != null) {
             trace.add("projeto: busca RAG restrita ao projeto " + projectId);
         }
@@ -167,7 +194,7 @@ public class AgentLoop {
 
         // Gating de ferramenta: so oferecemos as ferramentas (do tool-registry) ao LLM quando a
         // mensagem parece precisar (digito, ou palavra-chave de data/dados).
-        List<ToolSpec> activeTools = needsTools(userMessage) ? toolRegistryClient.specs() : null;
+        List<ToolSpec> activeTools = specsF.join();
 
         // Contexto RAG ja injetado => pergunta respondivel pelo documento. Nao oferecer
         // ferramenta nenhuma: (1) knowledge_search seria a mesma busca 2x (uma iteracao
@@ -181,7 +208,8 @@ public class AgentLoop {
         int iterations = 0;
         for (int i = 0; i < policy.iterationBudget() && finalReply == null; i++) {
             iterations = i + 1;
-            ChatMessage assistant = llmClient.complete(messages, activeTools, effectiveModel, policy.temperature());
+            ChatMessage assistant = llmClient.complete(messages, activeTools, effectiveModel,
+                    policy.temperature(), policy.maxTokens());
             messages.add(assistant);
 
             if (assistant.toolCalls() == null || assistant.toolCalls().isEmpty()) {
@@ -282,12 +310,21 @@ public class AgentLoop {
     private EffortPolicy effortPolicy(String effort) {
         int base = this.maxIterations;
         if (effort == null || effort.isBlank()) {
-            return new EffortPolicy(base, 0.0);
+            return new EffortPolicy(base, 0.0, 800);
         }
         return switch (effort.toLowerCase(java.util.Locale.ROOT)) {
-            case "rapido", "rápido" -> new EffortPolicy(Math.max(2, base / 2), 0.0);
-            case "profundo" -> new EffortPolicy(Math.min(12, base * 2), 0.3);
-            default -> new EffortPolicy(base, 0.1); // equilibrado
+            case "rapido", "rápido" -> new EffortPolicy(Math.max(2, base / 2), 0.0, 400);
+            case "profundo" -> new EffortPolicy(Math.min(12, base * 2), 0.3, 1600);
+            default -> new EffortPolicy(base, 0.1, 800); // equilibrado
+        };
+    }
+
+    /** Supplier que executa com o contexto de trace capturado (propagacao para o pool). */
+    private static <T> Supplier<T> inContext(ContextSnapshot snapshot, Supplier<T> supplier) {
+        return () -> {
+            try (ContextSnapshot.Scope ignored = snapshot.setThreadLocals()) {
+                return supplier.get();
+            }
         };
     }
 }

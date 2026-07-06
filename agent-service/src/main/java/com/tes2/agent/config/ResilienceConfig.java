@@ -3,7 +3,6 @@ package com.tes2.agent.config;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
-import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,11 +41,14 @@ public class ResilienceConfig {
     }
 
     /**
-     * Breakers de memory-service e retrieval-service. Diferente do llmGateway, são serviços
-     * rápidos: time limiter CURTO. Em fallback, o /chat segue sem histórico / sem RAG (o
-     * ciclo nunca quebra por causa de memória/RAG).
-     * - memoryService: 3s (Redis/Postgres locais).
-     * - retrievalService: 5s (encadeia um embedding no llm-gateway antes da busca).
+     * Breakers de memory-service, retrieval-service e tool-registry. Em fallback, o /chat
+     * segue sem histórico / sem RAG / sem ferramenta (o ciclo nunca quebra por causa deles).
+     * - memoryService: 3s (Redis/Postgres locais, não dependem do Ollama).
+     * - retrievalService/toolRegistry: 20s — ambos encadeiam um EMBEDDING no Ollama (CPU);
+     *   com o embeddinggemma descarregado (OLLAMA_KEEP_ALIVE 15m / cap de 2 modelos), a
+     *   recarga fria leva vários segundos e estourava os antigos 5s/3s, derrubando o RAG
+     *   inteiro em fallback (timeout medido em 06/07, seção 5.3 do relatório). O teto alto
+     *   não afeta o fallback instantâneo de serviço FORA (connection refused é imediato).
      */
     @Bean
     public Customizer<Resilience4JCircuitBreakerFactory> memoryRetrievalCustomizer() {
@@ -63,11 +65,11 @@ public class ResilienceConfig {
                 .timeoutDuration(Duration.ofSeconds(3))
                 .build();
         TimeLimiterConfig retrievalTl = TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofSeconds(5))
+                .timeoutDuration(Duration.ofSeconds(20))
                 .build();
 
         TimeLimiterConfig toolTl = TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofSeconds(3))
+                .timeoutDuration(Duration.ofSeconds(20))
                 .build();
 
         return factory -> {

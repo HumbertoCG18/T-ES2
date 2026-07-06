@@ -1,6 +1,7 @@
 package com.tes2.agent.llm.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ public record ChatCompletionRequest(
         String model,
         List<ChatMessage> messages,
         List<ToolSpec> tools,
-        Double temperature
+        Double temperature,
+        @JsonProperty("max_tokens") Integer maxTokens
 ) {
 }
