@@ -69,8 +69,15 @@ public class MemoryService {
             redis.opsForList().trim(k, 0, props.historyLimit() - 1L);
             redis.expire(k, Duration.ofSeconds(props.redisTtlSeconds()));
         } catch (Exception ex) {
-            // Postgres já persistiu; Redis é cache → degradar silenciosamente.
+            // Postgres já persistiu; Redis é cache → degradar. Mas uma List parcialmente
+            // atualizada ficaria defasada e a leitura Redis-first a trataria como fresca:
+            // apaga a key para forçar reheat a partir do Postgres na próxima leitura.
             log.warn("Falha ao escrever no Redis (cid={}): {}", conversationId, ex.toString());
+            try {
+                redis.delete(k);
+            } catch (Exception ignored) {
+                // Redis inacessível: a leitura também falhará e cairá no Postgres.
+            }
         }
     }
 

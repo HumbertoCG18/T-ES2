@@ -35,9 +35,10 @@ public class TelemetryListener {
                     dto.conversationId(), dto.latencyMs(), dto.iterations(), dto.ragHits(), tools);
         } catch (Exception ex) {
             // Telemetria é best-effort: falha de persistência não deve gerar requeue infinito
-            // (mensagem malformada ou BD fora do ar). Loga e descarta.
-            log.warn("Falha ao persistir telemetria (descartada) cid={}: {}",
-                    dto == null ? null : dto.conversationId(), ex.toString());
+            // (mensagem malformada ou BD fora do ar). Descarta, mas em ERROR com stacktrace —
+            // um Postgres fora do ar descartando eventos não pode passar despercebido no log.
+            log.error("Falha ao persistir telemetria (evento DESCARTADO) cid={}",
+                    dto == null ? null : dto.conversationId(), ex);
         }
     }
 }
