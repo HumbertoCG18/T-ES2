@@ -1,18 +1,19 @@
 # T-ES2 — Plataforma de Agentes Conversacionais
 
-Trabalho Final de Engenharia de Software II. Plataforma de microsserviços para execução de
-agentes de IA conversacionais (ciclo **raciocínio → ação → observação**), rodando localmente
-sem dependência de nuvem. Especificação completa em [`docs/t1_2026_1.pdf`](docs/t1_2026_1.pdf).
+Trabalho Final de Engenharia de Software II — projeto extensionista com o parceiro
+**Nubo** (https://nubo.ai/). Plataforma de microsserviços para execução de agentes de IA
+conversacionais (ciclo **raciocínio → ação → observação**), rodando localmente sem
+dependência de nuvem.
 
-> **Novo no projeto?** Comece pelo [**Guia do Sistema**](docs/GUIA-DO-SISTEMA.md) — explica o que é,
-> o que foi construído, o que instalar e como rodar, do zero.
+**Autor:** Humberto Corrêa Gomes (trabalho individual)
 
 ## Estado atual — Entregas 1–7 concluídas (dev/infra completo)
 
 Os **7 microsserviços** da spec existem e a plataforma sobe inteira com **`docker compose up`**
 (containers + infra + Ollama + Jaeger), com tracing distribuído (OTel→Jaeger), CI (GitHub Actions)
-e manifests Kubernetes (`k8s/`). Falta só a **Entrega 8** (relatório + vídeo + apresentação,
-englobando diagrama, benchmarks e discussão de riscos).
+e manifests Kubernetes (`k8s/`). Da **Entrega 8**, o relatório técnico (com diagrama, benchmarks
+reais e riscos), a apresentação e o roteiro do vídeo estão prontos — **falta só gravar/publicar o
+vídeo**.
 
 | Serviço | Papel | Stack | Porta |
 |---------|-------|-------|-------|
@@ -110,10 +111,10 @@ cd agent-service
    Java↔Python via `retrieval-service`); Jaeger no compose (UI :16686). + pipeline de CI
    (GitHub Actions: Java/Python/frontend). Verificado ao vivo.
 7. ✅ **Produção em nuvem** — manifests Kubernetes em `k8s/` (7 serviços + infra + Jaeger + Ingress;
-   ConfigMap/Secret/PVC; `kubectl kustomize` válido, 35 recursos) + análise de evolução para nuvem
-   ([`docs/cloud-evolution.md`](docs/cloud-evolution.md)). Cluster rodando é opcional.
-8. 🔨 Entrega final — relatório técnico + vídeo (YouTube não-listado) + apresentação. Roteiro passo
-   a passo em [`docs/plan/08-entrega-final.md`](docs/plan/08-entrega-final.md).
+   ConfigMap/Secret/PVC; `kubectl kustomize` válido, 35 recursos) + análise de evolução para nuvem.
+   Cluster rodando é opcional.
+8. 🔨 Entrega final — **relatório técnico, diagrama visual, benchmarks reais + interpretação,
+   riscos e apresentação prontos**; falta só gravar/publicar o vídeo (roteiro completo pronto).
 
 > **`tool-registry` (microsserviço nº 5 da spec)** ✅ — serviço remoto (8084) com **7 ferramentas**
 > (calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random); o
@@ -134,8 +135,7 @@ da resposta, editar/regenerar/copiar, anexos, **controles do agente no input do 
 esforço (Rápido/Equilibrado/Profundo) · modo raciocínio — estilo Claude Code, ligados ao `/chat`**,
 projetos (instruções/memória/arquivos com **barra de capacidade** e excluir projeto), e aba
 **Infraestrutura** nas configurações (Entregas 4–7 visíveis, com link para RabbitMQ/Jaeger). **Polido em 3 passes** (design tokens semânticos, estados/skeletons,
-mobile/a11y, **logomark próprio**). Verificado ao vivo com LLM real + tool calling. Status em
-[`docs/plan/B-frontend.md`](docs/plan/B-frontend.md).
+mobile/a11y, **logomark próprio**). Verificado ao vivo com LLM real + tool calling.
 
 O frontend **já sobe no `docker compose up`** (nginx na porta 5173, faz proxy `/api` → gateway) —
 nenhum passo extra para a demo. Para iterar a UI com hot-reload, rode-o à parte em modo dev:
@@ -147,14 +147,16 @@ npm run dev     # http://localhost:5173 (proxy /api -> gateway 8080)
 
 ## Entregáveis não-código (checklist — valem nota, fáceis de esquecer)
 
-- ⬜ **Diagrama de arquitetura** — serviços, responsabilidades, protocolos de comunicação.
-- ⬜ **Relatório técnico** — metodologia, decisões + justificativas, trade-offs, dificuldades,
-  conclusões.
-- ⬜ **Avaliação de desempenho** — experimentos/benchmarks (latência, throughput) com
-  interpretação crítica dos resultados.
-- ⬜ **Discussão de riscos** — segurança, performance, escalabilidade, disponibilidade.
+- ✅ **Diagrama de arquitetura** — Mermaid no relatório (seção 2.1) + PNG.
+- ✅ **Relatório técnico** — metodologia, decisões dos ADRs 0001–0016 + trade-offs,
+  dificuldades, conclusões.
+- ✅ **Avaliação de desempenho** — benchmarks medidos ao vivo na stack em containers (relatório,
+  seção 5), com 8 pontos de interpretação crítica (gargalo = LLM; breaker derruba cauda p/ 20 ms).
+- ✅ **Discussão de riscos** — relatório, seção 6 (segurança, performance, escalabilidade,
+  disponibilidade — com exemplos concretos do sistema).
 - ✅ **Análise de evolução para nuvem** + descrição das alterações para Kubernetes
-  ([`docs/cloud-evolution.md`](docs/cloud-evolution.md) + `k8s/`).
-- 🔨 **Circuit breaker demonstrado** — código pronto (fallback agent→llm-gateway/memory/retrieval);
-  falta só gravar o cenário (ex.: llm-gateway fora do ar) no vídeo.
-- ⬜ **Vídeo de demonstração** (YouTube não-listado) + apresentação final.
+  (`k8s/` + relatório, seção 7).
+- 🔨 **Circuit breaker demonstrado** — medido ao vivo (fallback ~20 ms, zero 5xx, recuperação
+  automática — relatório, seção 5.2-E); falta só gravar a cena no vídeo (roteiro, cena 8).
+- 🔨 **Vídeo de demonstração** (YouTube não-listado) — roteiro completo com cronograma, falas e
+  comandos; falta gravar/publicar. **Apresentação final** ✅ — pronta (Marp).
