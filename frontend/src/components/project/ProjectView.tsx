@@ -130,8 +130,14 @@ export function ProjectView({
   onExpand,
   onOpenMobile,
 }: ProjectViewProps) {
-  const { state, selectConversation, sendMessage, deleteProject, toggleProjectFavorite } =
-    useStore()
+  const {
+    state,
+    selectConversation,
+    sendMessage,
+    deleteProject,
+    deleteConversation,
+    toggleProjectFavorite,
+  } = useStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const conversations = state.conversations
@@ -184,8 +190,9 @@ export function ProjectView({
               <DialogHeader>
                 <DialogTitle>Excluir projeto?</DialogTitle>
                 <DialogDescription>
-                  “{project.name}” será removido. As conversas deste projeto são
-                  mantidas, apenas sem o projeto.
+                  “{project.name}” será removido, junto com os arquivos do seu
+                  conhecimento (RAG). As conversas deste projeto são mantidas, apenas
+                  sem o projeto.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 flex justify-end gap-2">
@@ -230,24 +237,37 @@ export function ProjectView({
                     </p>
                   ) : (
                     conversations.map((c) => (
-                      <button
+                      <div
                         key={c.id}
-                        type="button"
-                        onClick={() => selectConversation(c.id)}
-                        className="group flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left outline-none transition-colors hover:border-accent/30 hover:bg-foreground/[0.03] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="group flex items-center gap-1 rounded-xl border border-border bg-card pr-2 transition-colors hover:border-accent/30 hover:bg-foreground/[0.03]"
                       >
-                        <MessageSquare
-                          className="h-4 w-4 shrink-0 text-muted-foreground"
-                          aria-hidden="true"
-                        />
-                        <span className="truncate text-sm font-medium text-foreground">
-                          {c.title}
-                        </span>
-                        <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                          {c.messages.length}{" "}
-                          {c.messages.length === 1 ? "mensagem" : "mensagens"}
-                        </span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => selectConversation(c.id)}
+                          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-4 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          <MessageSquare
+                            className="h-4 w-4 shrink-0 text-muted-foreground"
+                            aria-hidden="true"
+                          />
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {c.title}
+                          </span>
+                          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                            {c.messages.length}{" "}
+                            {c.messages.length === 1 ? "mensagem" : "mensagens"}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteConversation(c.id)}
+                          aria-label={`Excluir conversa “${c.title}”`}
+                          title="Excluir conversa"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground opacity-0 outline-none transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background group-hover:opacity-100"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </div>
                     ))
                   )}
                 </div>
