@@ -2,14 +2,15 @@ package com.tes2.agent.web;
 
 import com.tes2.agent.agent.AgentLoop;
 import com.tes2.agent.agent.AgentResult;
+import com.tes2.agent.agent.Citation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/chat")
@@ -23,13 +24,46 @@ public class ChatController {
 
     @PostMapping
     public ChatResponse chat(@Valid @RequestBody ChatRequest request) {
-        AgentResult result = agentLoop.run(request.message());
-        return new ChatResponse(result.reply(), result.trace());
+        // Back-compat: sem conversationId, gera um (stateless) e devolve ao cliente.
+        String conversationId = (request.conversationId() == null || request.conversationId().isBlank())
+                ? UUID.randomUUID().toString()
+                : request.conversationId();
+        // Toggles por conversa: ausentes => ligados (comportamento padrão).
+        boolean useMemory = request.useMemory() == null || request.useMemory();
+        boolean useRag = request.useRag() == null || request.useRag();
+        // Modo raciocínio (thinking): ausente => desligado.
+        boolean thinking = request.thinking() != null && request.thinking();
+
+        // projectId em branco = sem escopo (busca RAG global).
+        String projectId = (request.projectId() == null || request.projectId().isBlank())
+                ? null
+                : request.projectId();
+
+        AgentResult result = agentLoop.run(conversationId, request.message(), request.model(),
+                useMemory, useRag, request.effort(), thinking, projectId);
+        return new ChatResponse(conversationId, result.reply(), result.trace(), result.citations());
     }
 
-    public record ChatRequest(@NotBlank String message) {
+    /**
+     * effort: "rapido" | "equilibrado" | "profundo" — controla o orçamento de iterações do
+     * ciclo agêntico e a temperatura. thinking: pede raciocínio passo a passo na resposta.
+     * projectId: escopo da busca RAG (só documentos do projeto); ausente = busca global.
+     */
+    public record ChatRequest(
+            @NotBlank String message,
+            String conversationId,
+            String model,
+            Boolean useMemory,
+            Boolean useRag,
+            String effort,
+            Boolean thinking,
+            String projectId) {
     }
 
-    public record ChatResponse(String reply, List<String> trace) {
+    public record ChatResponse(
+            String conversationId,
+            String reply,
+            List<String> trace,
+            List<Citation> citations) {
     }
 }

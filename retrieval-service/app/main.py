@@ -1,0 +1,105 @@
+"""retrieval-service — API de RAG (ingestão + busca semântica).
+
+Endpoints: /health, /ingest, /search, /documents/{docId}.
+Registra-se no Eureka no startup (lifespan) e desregistra no shutdown.
+"""
+
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
+
+# Loggers da app (retrieval.*) em INFO — sem isso, "Consumindo fila"/"Indexado via fila"
+# somem (root logger default é WARNING; o uvicorn só configura os loggers dele).
+logging.basicConfig(level=logging.INFO)
+
+from app import chroma, consumer, embeddings, eureka, rag_index
+from app.config import settings
+from app.models import (
+    Hit,
+    IngestRequest,
+    IngestResponse,
+    SearchRequest,
+    SearchResponse,
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await eureka.register()
+    await consumer.start()       # consumer da fila document.ingest (Entrega 4)
+    yield
+    await consumer.stop()
+    await eureka.deregister()
+
+
+app = FastAPI(title="retrieval-service", version="0.1.0", lifespan=lifespan)
+
+
+@app.get("/health")
+def health() -> dict:
+    return {"status": "UP", "service": settings.service_name}
+
+
+@app.post("/ingest", response_model=IngestResponse)
+async def ingest(req: IngestRequest) -> IngestResponse:
+    # Ingestão síncrona direta; a fila document.ingest usa a mesma lógica (rag_index).
+    n = await rag_index.index_document(req.docId, req.text, req.projectId, req.metadata)
+    if n == 0:
+        raise HTTPException(status_code=400, detail="texto vazio")
+    return IngestResponse(docId=req.docId, chunksIndexed=n)
+
+
+@app.post("/search", response_model=SearchResponse)
+async def search(req: SearchRequest) -> SearchResponse:
+    qvec = await embeddings.embed_query(req.query)
+    where = {"project_id": req.projectId} if req.projectId else None
+    res = await run_in_threadpool(chroma.query, [qvec], req.topK, where)
+
+    docs = (res.get("documents") or [[]])[0]
+    metas = (res.get("metadatas") or [[]])[0]
+    dists = (res.get("distances") or [[]])[0]
+
+    hits = [
+        Hit(
+            text=doc,
+            score=round(1.0 - dist, 4) if dist is not None else 0.0,  # cosseno: 1 - dist
+            metadata=meta or {},
+        )
+        for doc, meta, dist in zip(docs, metas, dists)
+    ]
+    return SearchResponse(hits=hits)
+
+
+@app.delete("/documents/{doc_id}")
+async def delete_document(doc_id: str) -> dict:
+    await run_in_threadpool(chroma.delete_doc, doc_id)
+    return {"docId": doc_id, "deleted": True}
+
+
+@app.get("/projects/{project_id}/documents")
+async def project_documents(project_id: str) -> dict:
+    """Inventário dos documentos indexados de um projeto (nome, nº de chunks, prévia).
+
+    Usado pelo agent-service para o agente saber SEMPRE o que existe no conhecimento do
+    projeto — meta-perguntas ("o que tem no arquivo?") não dependem de similaridade semântica.
+    """
+    res = await run_in_threadpool(chroma.get_by_project, project_id)
+    docs: dict[str, dict] = {}
+    for meta, doc in zip(res.get("metadatas") or [], res.get("documents") or []):
+        m = meta or {}
+        doc_id = str(m.get("doc_id", ""))
+        if not doc_id:
+            continue
+        entry = docs.setdefault(
+            doc_id,
+            {"docId": doc_id, "fileName": m.get("file_name"), "chunks": 0, "preview": ""},
+        )
+        entry["chunks"] += 1
+        if m.get("file_name") and not entry["fileName"]:
+            entry["fileName"] = m.get("file_name")
+        # Prévia = início do chunk 0; se ele não vier no batch, usa o primeiro chunk disponível.
+        if doc and (m.get("chunk_index", 0) == 0 or not entry["preview"]):
+            entry["preview"] = doc[:300]
+    return {"documents": list(docs.values())}

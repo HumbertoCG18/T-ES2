@@ -1,0 +1,7 @@
+# Perfil de teste: desliga o Eureka client para o contexto subir sem o name-server
+# (evita stack traces de registro durante os testes / CI).
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false

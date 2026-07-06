@@ -1,0 +1,222 @@
+# Infra: Redis, PostgreSQL, ChromaDB, RabbitMQ, Ollama, Jaeger.
+# Cada um: PVC (dados duráveis) + Deployment + Service (ClusterIP, interno).
+# Em produção, trocar por serviços gerenciados (ver docs/cloud-evolution.md).
+# ---------------- Redis ----------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: redis-pvc, namespace: tes2 }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: redis, namespace: tes2 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: redis } }
+  template:
+    metadata: { labels: { app: redis } }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+          ports: [{ containerPort: 6379 }]
+          readinessProbe: { tcpSocket: { port: 6379 }, initialDelaySeconds: 5, periodSeconds: 10 }
+          livenessProbe: { tcpSocket: { port: 6379 }, initialDelaySeconds: 10, periodSeconds: 15 }
+          volumeMounts: [{ name: data, mountPath: /data }]
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: redis-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: redis, namespace: tes2 }
+spec:
+  selector: { app: redis }
+  ports: [{ port: 6379, targetPort: 6379 }]
+# ---------------- PostgreSQL ----------------
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: postgres-pvc, namespace: tes2 }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 2Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: postgres, namespace: tes2 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres } }
+  template:
+    metadata: { labels: { app: postgres } }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - { name: POSTGRES_DB, value: memory }
+            - { name: POSTGRES_USER, valueFrom: { configMapKeyRef: { name: platform-config, key: POSTGRES_USER } } }
+            - { name: POSTGRES_PASSWORD, valueFrom: { secretKeyRef: { name: platform-secret, key: POSTGRES_PASSWORD } } }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          ports: [{ containerPort: 5432 }]
+          readinessProbe: { exec: { command: ["pg_isready", "-U", "postgres", "-d", "memory"] }, initialDelaySeconds: 10, periodSeconds: 10 }
+          livenessProbe: { tcpSocket: { port: 5432 }, initialDelaySeconds: 20, periodSeconds: 15 }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: postgres-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres, namespace: tes2 }
+spec:
+  selector: { app: postgres }
+  ports: [{ port: 5432, targetPort: 5432 }]
+# ---------------- ChromaDB ----------------
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: chroma-pvc, namespace: tes2 }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 2Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: chromadb, namespace: tes2 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chromadb } }
+  template:
+    metadata: { labels: { app: chromadb } }
+    spec:
+      containers:
+        - name: chromadb
+          image: chromadb/chroma:1.5.3
+          ports: [{ containerPort: 8000 }]
+          readinessProbe: { tcpSocket: { port: 8000 }, initialDelaySeconds: 10, periodSeconds: 10 }
+          volumeMounts: [{ name: data, mountPath: /data }]
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: chroma-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chromadb, namespace: tes2 }
+spec:
+  selector: { app: chromadb }
+  ports: [{ port: 8000, targetPort: 8000 }]
+# ---------------- RabbitMQ ----------------
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: rabbitmq-pvc, namespace: tes2 }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: rabbitmq, namespace: tes2 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: rabbitmq } }
+  template:
+    metadata: { labels: { app: rabbitmq } }
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+            - { containerPort: 5672 }
+            - { containerPort: 15672 }
+          readinessProbe: { exec: { command: ["rabbitmq-diagnostics", "-q", "ping"] }, initialDelaySeconds: 20, periodSeconds: 15 }
+          volumeMounts: [{ name: data, mountPath: /var/lib/rabbitmq }]
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: rabbitmq-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: rabbitmq, namespace: tes2 }
+spec:
+  selector: { app: rabbitmq }
+  ports:
+    - { name: amqp, port: 5672, targetPort: 5672 }
+    - { name: ui, port: 15672, targetPort: 15672 }
+# ---------------- Ollama ----------------
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: ollama-pvc, namespace: tes2 }
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources: { requests: { storage: 20Gi } }   # modelos sao GB
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: ollama, namespace: tes2 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ollama } }
+  template:
+    metadata: { labels: { app: ollama } }
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama
+          # Paridade com docker-compose: mantém o modelo quente e limita KV cache / nº de modelos.
+          env:
+            - { name: OLLAMA_KEEP_ALIVE, value: "15m" }
+            - { name: OLLAMA_CONTEXT_LENGTH, value: "4096" }
+            - { name: OLLAMA_MAX_LOADED_MODELS, value: "2" }
+          ports: [{ containerPort: 11434 }]
+          # GPU (producao): adicionar resources.limits."nvidia.com/gpu": 1 + node com GPU.
+          resources:
+            requests: { cpu: "500m", memory: 2Gi }
+            limits: { cpu: "4", memory: 8Gi }
+          readinessProbe: { tcpSocket: { port: 11434 }, initialDelaySeconds: 10, periodSeconds: 10 }
+          volumeMounts: [{ name: models, mountPath: /root/.ollama }]
+      volumes:
+        - name: models
+          persistentVolumeClaim: { claimName: ollama-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: ollama, namespace: tes2 }
+spec:
+  selector: { app: ollama }
+  ports: [{ port: 11434, targetPort: 11434 }]
+# ---------------- Jaeger ----------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: jaeger, namespace: tes2 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: jaeger } }
+  template:
+    metadata: { labels: { app: jaeger } }
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one
+          env:
+            - { name: COLLECTOR_OTLP_ENABLED, value: "true" }
+          ports:
+            - { containerPort: 16686 }
+            - { containerPort: 4318 }
+          readinessProbe: { tcpSocket: { port: 16686 }, initialDelaySeconds: 10, periodSeconds: 10 }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: jaeger, namespace: tes2 }
+spec:
+  selector: { app: jaeger }
+  ports:
+    - { name: ui, port: 16686, targetPort: 16686 }
+    - { name: otlp-http, port: 4318, targetPort: 4318 }

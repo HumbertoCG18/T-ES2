@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "dev-*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  java:
+    name: build java (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [name-server, api-gateway, agent-service, memory-service, tool-registry]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Build + test
+        run: mvn -B -ntp -f ${{ matrix.module }}/pom.xml package
+
+  python:
+    name: build python (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [llm-gateway, retrieval-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Resolve + install deps
+        working-directory: ${{ matrix.service }}
+        run: uv sync
+
+  frontend:
+    name: typecheck frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+      - name: Typecheck
+        working-directory: frontend
+        run: npx tsc --noEmit

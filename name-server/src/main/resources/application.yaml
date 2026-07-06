@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: name-server
+
+server:
+  port: 8761
+
+# Eureka Server nao se registra em si mesmo nem busca registro.
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    hostname: localhost
+  server:
+    # DEV: desliga self-preservation. Com poucas instancias locais e servicos
+    # subindo/morrendo, o modo de auto-preservacao dispara o banner "EMERGENCY" e
+    # mantem instancias mortas como UP. Em PRODUCAO deve ficar TRUE (protege contra
+    # blips de rede). Ver docs/cloud-evolution.md.
+    enable-self-preservation: false
+    # Expira instancias mortas mais rapido (default 60s) para o dashboard refletir a realidade.
+    eviction-interval-timer-in-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

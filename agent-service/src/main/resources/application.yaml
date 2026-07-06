@@ -2,6 +2,19 @@ spring:
   application:
     name: agent-service
 
+  # /models/pull responde em streaming (StreamingResponseBody): o download de um modelo pode levar
+  # minutos. Eleva o timeout do request assincrono (padrao do container ~30s mataria o stream).
+  mvc:
+    async:
+      request-timeout: 3600000   # 1h
+
+  # Mensageria (Entrega 4). Produtor de document.ingest e telemetry.events.
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
 server:
   port: 8081
 
@@ -11,8 +24,48 @@ llm:
   base-url: ${LLM_BASE_URL:http://localhost:4000}
   model: ${LLM_MODEL:chat}
   max-iterations: ${LLM_MAX_ITERATIONS:5}
+  # Baixa por padrao: reduz alucinacao de tool-calls do modelo local (ex.: calculator p/ "Teste").
+  temperature: ${LLM_TEMPERATURE:0.0}
+
+# memory-service: discovery por padrao (lb://). MEMORY_URL pode apontar p/ http://host:porta.
+memory:
+  base-url: ${MEMORY_URL:lb://memory-service}
+  history-limit: ${MEMORY_HISTORY_LIMIT:20}
+
+# retrieval-service (RAG): lb:// por padrao; RETRIEVAL_URL=http://host:porta = fallback URL fixa.
+retrieval:
+  base-url: ${RETRIEVAL_URL:lb://retrieval-service}
+  top-k: ${RETRIEVAL_TOP_K:4}
+  # Limiar de relevancia (cosseno): so injeta contexto RAG com score >= este valor.
+  min-score: ${RETRIEVAL_MIN_SCORE:0.3}
+
+# tool-registry: ferramentas remotas (calculator, datetime, db_query). lb:// ou http://host:porta.
+tools:
+  base-url: ${TOOLS_URL:lb://tool-registry}
+
+# Ollama (administracao de modelos: listar/baixar/remover via /models). Setup, fora do /chat.
+# Compose: http://ollama:11434. URL fixa (Ollama nao esta no Eureka).
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# Config do circuit breaker 'llmGateway' fica em ResilienceConfig.java (Customizer),
+# pois a API programatica do Spring Cloud CircuitBreaker nao le resilience4j.circuitbreaker.*.
 
 management:
+  # Tracing distribuido (Entrega 6): OTel -> Jaeger via OTLP HTTP.
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
   endpoints:
     web:
       exposure:

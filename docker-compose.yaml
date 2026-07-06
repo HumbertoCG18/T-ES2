@@ -1,0 +1,230 @@
+# Plataforma de Agentes Conversacionais — orquestração completa (Entrega 5).
+# Sobe os 7 microsserviços + frontend (UI) + infra (Redis, PostgreSQL, ChromaDB, RabbitMQ) + Ollama.
+#   Site: http://localhost:5173  (nginx serve a SPA e faz proxy de /api -> api-gateway:8080)
+# Tudo na mesma rede do compose; serviços se resolvem por nome (e por lb:// via Eureka).
+# 100% local, sem nuvem.
+#
+#   docker compose build              # constroi as 7 imagens (1a vez ~minutos)
+#   docker compose up -d              # sobe tudo
+#   docker compose exec ollama ollama pull llama3.1          # 1a vez (fica no volume)
+#   docker compose exec ollama ollama pull embeddinggemma:300m
+#   curl http://localhost:8080/chat -H "Content-Type: application/json" -d '{"message":"oi"}'
+
+name: tes2
+
+services:
+  # ---------------- Infra ----------------
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports: ["6379:6379"]
+    volumes: ["redis-data:/data"]
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: memory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d memory"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:1.5.3
+    container_name: chromadb
+    ports: ["8000:8000"]
+    volumes: ["chroma-data:/data"]
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports: ["5672:5672", "15672:15672"]
+    volumes: ["rabbitmq-data:/var/lib/rabbitmq"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    environment:
+      # Economia de RAM: descarrega o modelo apos 15min ocioso. Menor que isso pune demais a
+      # latencia (recarga medida: ~30s no proximo /chat); 15m mantem o modelo quente durante
+      # uma conversa/demo. Contexto fixo (KV cache limitado); max 2 modelos (chat + embeddings).
+      OLLAMA_KEEP_ALIVE: 15m
+      OLLAMA_CONTEXT_LENGTH: "4096"
+      OLLAMA_MAX_LOADED_MODELS: "2"
+    ports: ["11434:11434"]
+    volumes: ["ollama-models:/root/.ollama"]
+    restart: unless-stopped
+    # GPU (opcional): descomente se tiver NVIDIA + nvidia-container-toolkit.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - { driver: nvidia, count: all, capabilities: [gpu] }
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    container_name: jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"   # recebe OTLP (HTTP 4318) dos serviços
+      # Armazenamento em memoria + sampling 100%: sem cap, a RAM cresce sem limite.
+      MEMORY_MAX_TRACES: "2000"
+    ports:
+      - "16686:16686"   # UI
+      - "4318:4318"     # OTLP HTTP
+    restart: unless-stopped
+
+  # ---------------- Serviços ----------------
+  name-server:
+    build: ./name-server
+    container_name: name-server
+    environment:
+      # Teto de heap: sem -Xmx a JVM dimensiona pela RAM do host e o RSS infla (~370MB -> ~200MB).
+      JAVA_OPTS: -Xmx256m -Xss512k
+    ports: ["8761:8761"]
+    restart: unless-stopped
+
+  llm-gateway:
+    build: ./llm-gateway
+    container_name: llm-gateway
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+    ports: ["4000:4000"]
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  memory-service:
+    build: ./memory-service
+    container_name: memory-service
+    environment:
+      EUREKA_URL: http://name-server:8761/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/memory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      JAVA_OPTS: -Xmx256m -Xss512k
+    ports: ["8082:8082"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      name-server: { condition: service_started }
+    restart: unless-stopped
+
+  retrieval-service:
+    build: ./retrieval-service
+    container_name: retrieval-service
+    environment:
+      EUREKA_URL: http://name-server:8761/eureka
+      LLM_BASE_URL: http://llm-gateway:4000
+      CHROMA_HOST: chromadb
+      RABBITMQ_HOST: rabbitmq
+      SERVICE_HOST: retrieval-service   # registrado no Eureka; resolvido por DNS do compose
+      # Tracing OTel -> Jaeger
+      OTEL_SERVICE_NAME: retrieval-service
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    ports: ["8083:8083"]
+    depends_on:
+      chromadb: { condition: service_started }
+      rabbitmq: { condition: service_healthy }
+      llm-gateway: { condition: service_started }
+      name-server: { condition: service_started }
+    restart: unless-stopped
+
+  tool-registry:
+    build: ./tool-registry
+    container_name: tool-registry
+    environment:
+      EUREKA_URL: http://name-server:8761/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/memory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      RETRIEVAL_URL: lb://retrieval-service
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      JAVA_OPTS: -Xmx256m -Xss512k
+    ports: ["8084:8084"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      name-server: { condition: service_started }
+    restart: unless-stopped
+
+  agent-service:
+    build: ./agent-service
+    container_name: agent-service
+    environment:
+      EUREKA_URL: http://name-server:8761/eureka
+      LLM_BASE_URL: http://llm-gateway:4000
+      RABBITMQ_HOST: rabbitmq
+      MEMORY_URL: lb://memory-service
+      RETRIEVAL_URL: lb://retrieval-service
+      TOOLS_URL: lb://tool-registry
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      OLLAMA_BASE_URL: http://ollama:11434
+      # Heap um pouco maior: proxy de pull de modelos (streaming) + montagem de contexto RAG.
+      JAVA_OPTS: -Xmx320m -Xss512k
+    ports: ["8081:8081"]
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      llm-gateway: { condition: service_started }
+      name-server: { condition: service_started }
+      ollama: { condition: service_started }
+    restart: unless-stopped
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      EUREKA_URL: http://name-server:8761/eureka
+      REDIS_HOST: redis
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      JAVA_OPTS: -Xmx256m -Xss512k
+    ports: ["8080:8080"]
+    depends_on:
+      redis: { condition: service_healthy }
+      name-server: { condition: service_started }
+    restart: unless-stopped
+
+  # ---------------- Frontend (UI) ----------------
+  # SPA (Vite/React) servida por nginx; /api faz proxy reverso pro api-gateway.
+  # Assim o site inteiro sobe com um único `docker compose up` (sem terminal à parte).
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports: ["5173:80"]
+    depends_on:
+      api-gateway: { condition: service_started }
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  postgres-data:
+  chroma-data:
+  rabbitmq-data:
+  ollama-models:

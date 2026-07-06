@@ -17,6 +17,13 @@ model_list:
       model: ollama_chat/gemma3:4b
       api_base: os.environ/OLLAMA_BASE_URL
 
+  # Modelo rapido p/ CPU (3B): ~3-4x mais rapido que o llama3.1 8B em prompt eval/geracao.
+  # Tool calling ok, qualidade menor. Bom para demo em maquina sem GPU.
+  - model_name: chat-fast
+    litellm_params:
+      model: ollama_chat/llama3.2:3b
+      api_base: os.environ/OLLAMA_BASE_URL
+
   # Embeddings para o retrieval-service (RAG), Entrega 3.
   - model_name: embeddings
     litellm_params:
