@@ -13,11 +13,27 @@ import json
 import logging
 
 import aio_pika
+from opentelemetry import trace
+from opentelemetry.propagate import extract
 
 from app import rag_index
 from app.config import settings
 
 log = logging.getLogger("retrieval.consumer")
+
+_tracer = trace.get_tracer("retrieval.consumer")
+
+
+def _extract_context(message: aio_pika.abc.AbstractIncomingMessage):
+    """Contexto de trace dos headers AMQP (traceparent W3C, publicado pelo agent-service
+    com spring.rabbitmq.template.observation-enabled). Sem header → contexto vazio e o
+    span do consumo vira raiz de um trace novo (comportamento antigo)."""
+    headers = {}
+    for k, v in (message.headers or {}).items():
+        if isinstance(v, bytes):
+            v = v.decode(errors="replace")
+        headers[str(k)] = str(v)
+    return extract(headers)
 
 # ARMADILHA (aio-pika 9.x): kwargs extras do connect_robust são serializados na query da
 # URL AMQP (make_url → yarl.URL.build), e o yarl rejeita bool — "Invalid variable type:
@@ -86,27 +102,38 @@ async def _on_message(message: aio_pika.abc.AbstractIncomingMessage) -> None:
     #  - transitória de downstream (ChromaDB/embeddings fora) → nack requeue → reprocessa quando
     #    o downstream voltar. Antes tudo era ack+descarte: uma queda de 30s de Chroma perdia todos
     #    os docs em silêncio (achado na Entrega 8, seção 5.3 do relatório).
-    try:
-        payload = json.loads(message.body.decode())
-        doc_id = payload["docId"]
-        text = payload["text"]
-    except (json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError) as ex:
-        await message.ack()
-        log.warning("Mensagem malformada descartada (poison): %s", ex)
-        return
+    # Span de consumo como filho do trace que publicou a mensagem (fecha o gap
+    # produtor Java → consumidor Python no Jaeger).
+    with _tracer.start_as_current_span(
+        f"{settings.ingest_queue} process",
+        context=_extract_context(message),
+        kind=trace.SpanKind.CONSUMER,
+    ) as span:
+        try:
+            payload = json.loads(message.body.decode())
+            doc_id = payload["docId"]
+            text = payload["text"]
+        except (json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError) as ex:
+            await message.ack()
+            log.warning("Mensagem malformada descartada (poison): %s", ex)
+            return
 
-    try:
-        n = await rag_index.index_document(
-            doc_id, text, payload.get("projectId"), payload.get("metadata")
-        )
-        await message.ack()
-        log.info("Indexado via fila: docId=%s chunks=%d", doc_id, n)
-    except Exception as ex:  # noqa: BLE001 — downstream fora: reprocessa, não perde
-        # sleep antes do nack: RabbitMQ reentrega imediato; sem isto vira loop quente durante
-        # a queda. Throttle no reconnect_seconds até o downstream voltar.
-        log.warning("Falha transitória ao indexar docId=%s; reenfileirando: %s", doc_id, ex)
-        await asyncio.sleep(settings.rabbitmq_reconnect_seconds)
-        await message.nack(requeue=True)
+        span.set_attribute("document.id", doc_id)
+        try:
+            n = await rag_index.index_document(
+                doc_id, text, payload.get("projectId"), payload.get("metadata")
+            )
+            await message.ack()
+            log.info("Indexado via fila: docId=%s chunks=%d", doc_id, n)
+            return
+        except Exception as ex:  # noqa: BLE001 — downstream fora: reprocessa, não perde
+            span.record_exception(ex)
+            log.warning("Falha transitória ao indexar docId=%s; reenfileirando: %s", doc_id, ex)
+
+    # Fora do span (o throttle não é trabalho de indexação): sleep antes do nack —
+    # RabbitMQ reentrega imediato; sem isto vira loop quente durante a queda.
+    await asyncio.sleep(settings.rabbitmq_reconnect_seconds)
+    await message.nack(requeue=True)
 
 
 async def stop() -> None:

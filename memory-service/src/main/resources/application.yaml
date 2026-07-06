@@ -28,6 +28,11 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    # Observation no listener: continua o trace do traceparent recebido nos headers AMQP
+    # (span do consumo aparece sob o trace do /chat que publicou o evento).
+    listener:
+      simple:
+        observation-enabled: true
 
 server:
   port: 8082

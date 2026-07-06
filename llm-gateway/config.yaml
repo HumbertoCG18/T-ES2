@@ -33,3 +33,6 @@ model_list:
 litellm_settings:
   drop_params: true        # ignora params nao suportados pelo backend
   request_timeout: 600     # modelos locais podem demorar a responder
+  # Tracing OTel (Entrega 8): emite spans das chamadas ao Ollama via OTLP -> Jaeger.
+  # Destino/nome do servico vem das env OTEL_* (docker-compose).
+  callbacks: ["otel"]
