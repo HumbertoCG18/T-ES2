@@ -34,5 +34,8 @@ async def index_document(
             md["project_id"] = project_id
         metadatas.append(md)
 
+    # Reingestão com texto menor: o upsert só sobrescreve os ids novos; chunks antigos
+    # com índice além do novo total ficariam órfãos no índice. Apaga o doc antes.
+    await run_in_threadpool(chroma.delete_doc, doc_id)
     await run_in_threadpool(chroma.upsert, ids, chunks, vectors, metadatas)
     return len(chunks)

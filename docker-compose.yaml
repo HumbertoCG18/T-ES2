@@ -66,21 +66,24 @@ services:
     image: ollama/ollama
     container_name: ollama
     environment:
-      # Economia de RAM: descarrega o modelo apos 15min ocioso. Menor que isso pune demais a
-      # latencia (recarga medida: ~30s no proximo /chat); 15m mantem o modelo quente durante
-      # uma conversa/demo. Contexto fixo (KV cache limitado); max 2 modelos (chat + embeddings).
-      OLLAMA_KEEP_ALIVE: 15m
+      # keep_alive -1: modelo usado fica carregado para sempre (nada de recarga fria de ~30s
+      # no chat nem timeout de embedding no RAG). Custo: RAM pinada por modelo usado — o cap
+      # de 2 modelos limita a ~3,3GB no cenario da demo (chat-fast + embeddinggemma); trocar
+      # de modelo despeja o menos usado (LRU). O servico 'ollama-warmup' aquece os dois no up.
+      OLLAMA_KEEP_ALIVE: "-1"
       OLLAMA_CONTEXT_LENGTH: "4096"
       OLLAMA_MAX_LOADED_MODELS: "2"
     ports: ["11434:11434"]
     volumes: ["ollama-models:/root/.ollama"]
     restart: unless-stopped
-    # GPU (opcional): descomente se tiver NVIDIA + nvidia-container-toolkit.
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - { driver: nvidia, count: all, capabilities: [gpu] }
+    # GPU: RTX 4050 Laptop (6GB VRAM). chat-fast (~2,5GB) + embeddinggemma (~0,7GB) cabem
+    # inteiros; llama3.1 8B nao cabe sozinho e faz offload parcial CPU+GPU (ainda mais
+    # rapido que CPU puro). Medido em 06/07: chat-fast 80 tokens 3,45s (CPU) -> ver relatorio.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - { driver: nvidia, count: all, capabilities: [gpu] }
 
   jaeger:
     image: jaegertracing/all-in-one
@@ -104,11 +107,37 @@ services:
     ports: ["8761:8761"]
     restart: unless-stopped
 
+  # One-shot: aquece chat-fast e embeddings assim que o llm-gateway responde, para a
+  # primeira pergunta (e a primeira busca RAG) ja encontrarem os modelos carregados.
+  # Com OLLAMA_KEEP_ALIVE=-1 eles ficam quentes dali em diante. Sai com exit 0 ao terminar.
+  ollama-warmup:
+    image: curlimages/curl:8.10.1
+    container_name: ollama-warmup
+    depends_on:
+      - llm-gateway
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until curl -sf http://llm-gateway:4000/health/liveliness > /dev/null 2>&1; do sleep 2; done
+        curl -sf -X POST http://llm-gateway:4000/v1/chat/completions \
+          -H 'Content-Type: application/json' \
+          -d '{"model":"chat-fast","messages":[{"role":"user","content":"oi"}],"max_tokens":1}' > /dev/null \
+          && echo "warmup: chat-fast ok" || echo "warmup: chat-fast FALHOU"
+        curl -sf -X POST http://llm-gateway:4000/v1/embeddings \
+          -H 'Content-Type: application/json' \
+          -d '{"model":"embeddings","input":"warmup"}' > /dev/null \
+          && echo "warmup: embeddings ok" || echo "warmup: embeddings FALHOU"
+
   llm-gateway:
     build: ./llm-gateway
     container_name: llm-gateway
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
+      # Tracing (callback 'otel' no config.yaml): spans das chamadas ao Ollama -> Jaeger.
+      OTEL_SERVICE_NAME: llm-gateway
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
     ports: ["4000:4000"]
     depends_on:
       - ollama

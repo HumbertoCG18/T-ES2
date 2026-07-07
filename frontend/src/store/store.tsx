@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react"
 
-import { deleteRagDocument, sendChat } from "@/lib/api"
+import { clearMemory, deleteRagDocument, sendChat } from "@/lib/api"
 import { buildAgentText } from "@/lib/files"
 import { newId } from "@/lib/id"
 import type {
@@ -245,11 +245,21 @@ function reducer(state: AppState, action: Action): AppState {
       }
 
     case "ADD_PROJECT_FILES":
+      // Id é hash de conteúdo: re-upload do mesmo arquivo substitui a entrada existente
+      // (evita duplicata na lista e chave React repetida).
       return {
         ...state,
         projects: state.projects.map((p) =>
           p.id === action.id
-            ? { ...p, files: [...p.files, ...action.files] }
+            ? {
+                ...p,
+                files: [
+                  ...p.files.filter(
+                    (f) => !action.files.some((n) => n.id === f.id),
+                  ),
+                  ...action.files,
+                ],
+              }
             : p,
         ),
       }
@@ -678,6 +688,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const deleteConversation = useCallback((id: string) => {
+    // Limpa a memória do servidor (Redis + Postgres); falha não impede o delete local.
+    clearMemory(id).catch(() => {})
     dispatch({ type: "DELETE_CONVERSATION", id })
   }, [])
 
@@ -732,6 +744,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const deleteProject = useCallback((id: string) => {
+    // De-ingesta do RAG os arquivos do projeto (best-effort) — sem isso os chunks ficam
+    // órfãos no ChromaDB (o docId no retrieval é o próprio ProjectFile.id).
+    const project = stateRef.current.projects.find((p) => p.id === id)
+    project?.files.forEach((f) => {
+      deleteRagDocument(f.id).catch(() => {})
+    })
     dispatch({ type: "DELETE_PROJECT", id })
   }, [])
 

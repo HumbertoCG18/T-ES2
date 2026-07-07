@@ -5,4 +5,8 @@ description = "Proxy unificado para LLMs locais (LiteLLM + Ollama)"
 requires-python = ">=3.11"
 dependencies = [
     "litellm[proxy]>=1.55.0",
+    # Tracing OTel -> Jaeger (callback 'otel' no config.yaml + env OTEL_* no compose).
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-http",
 ]

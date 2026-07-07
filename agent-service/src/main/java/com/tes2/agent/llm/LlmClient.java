@@ -37,18 +37,18 @@ public class LlmClient {
     }
 
     public ChatMessage complete(List<ChatMessage> messages, List<ToolSpec> tools, String model,
-                                Double temperature) {
+                                Double temperature, Integer maxTokens) {
         return circuitBreakerFactory.create(CB_NAME).run(
-                () -> doComplete(messages, tools, model, temperature),
+                () -> doComplete(messages, tools, model, temperature, maxTokens),
                 this::completeFallback);
     }
 
     private ChatMessage doComplete(List<ChatMessage> messages, List<ToolSpec> tools, String model,
-                                   Double temperature) {
+                                   Double temperature, Integer maxTokens) {
         String effectiveModel = (model == null || model.isBlank()) ? props.model() : model;
         Double effectiveTemp = (temperature == null) ? props.temperature() : temperature;
         ChatCompletionRequest request =
-                new ChatCompletionRequest(effectiveModel, messages, tools, effectiveTemp);
+                new ChatCompletionRequest(effectiveModel, messages, tools, effectiveTemp, maxTokens);
         ChatCompletionResponse response = client.post()
                 .uri("/v1/chat/completions")
                 .body(request)

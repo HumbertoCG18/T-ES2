@@ -1,4 +1,3 @@
-import { newId } from "@/lib/id"
 import type { ComposerAttachment, ProjectFile } from "@/store/types"
 
 /** Limite de texto guardado por arquivo (localStorage tem ~5MB no total). */
@@ -107,19 +106,35 @@ async function readFileText(file: File): Promise<string | undefined> {
 }
 
 /**
+ * Id determinístico por conteúdo (SHA-256 de nome + texto). Esse id é o docId da ingestão
+ * RAG: re-upload do mesmo arquivo gera o MESMO id, então o upsert no ChromaDB sobrescreve
+ * os chunks em vez de duplicá-los. Binários (sem texto) usam nome + tamanho + tipo.
+ */
+async function contentId(file: File, text: string | undefined): Promise<string> {
+  const material = `${file.name}\n${text ?? `${file.size}:${file.type}`}`
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(material),
+  )
+  return Array.from(new Uint8Array(digest).slice(0, 16))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+}
+
+/**
  * Lê uma lista de arquivos. Texto (e PDF com texto) vira `text` (truncado);
  * binários ficam só com metadados. Falhas individuais não derrubam o lote.
  */
 export async function readProjectFiles(files: File[]): Promise<ProjectFile[]> {
   return Promise.all(
     files.map(async (file): Promise<ProjectFile> => {
+      const text = await readFileText(file)
       const base: ProjectFile = {
-        id: newId(),
+        id: await contentId(file, text),
         name: file.name,
         size: file.size,
         type: file.type,
       }
-      const text = await readFileText(file)
       return text !== undefined ? { ...base, text } : base
     }),
   )

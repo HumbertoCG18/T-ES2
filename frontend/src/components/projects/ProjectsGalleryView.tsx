@@ -1,10 +1,17 @@
 import { useMemo, useState } from "react"
-import { ArrowDownUp, FileText, Plus } from "lucide-react"
+import { ArrowDownUp, FileText, Plus, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/search-input"
 import { ViewHeader } from "@/components/layout/ViewHeader"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,9 +42,13 @@ export function ProjectsGalleryView({
   onExpand,
   onOpenMobile,
 }: ProjectsGalleryViewProps) {
-  const { state, openProject } = useStore()
+  const { state, openProject, deleteProject } = useStore()
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<SortKey>("recent")
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const confirmProject = confirmId
+    ? state.projects.find((p) => p.id === confirmId)
+    : undefined
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -120,33 +131,78 @@ export function ProjectsGalleryView({
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {list.map((p) => (
-                <button
+                <div
                   key={p.id}
-                  type="button"
-                  onClick={() => openProject(p.id)}
-                  className="flex flex-col rounded-xl border border-border bg-card p-4 text-left outline-none transition-colors hover:border-accent/40 hover:bg-foreground/[0.02] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="group relative rounded-xl border border-border bg-card transition-colors hover:border-accent/40 hover:bg-foreground/[0.02]"
                 >
-                  <span className="truncate text-sm font-semibold text-foreground">
-                    {p.name}
-                  </span>
-                  {p.instructions.trim() && (
-                    <span className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                      {p.instructions.trim()}
+                  <button
+                    type="button"
+                    onClick={() => openProject(p.id)}
+                    className="flex w-full flex-col rounded-xl p-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <span className="truncate pr-8 text-sm font-semibold text-foreground">
+                      {p.name}
                     </span>
-                  )}
-                  <span className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>Criado {formatRelativeTime(p.createdAt)}</span>
-                    {p.files.length > 0 && (
-                      <span className="inline-flex items-center gap-1">
-                        <FileText className="h-3 w-3" aria-hidden="true" />
-                        {p.files.length}
+                    {p.instructions.trim() && (
+                      <span className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                        {p.instructions.trim()}
                       </span>
                     )}
-                  </span>
-                </button>
+                    <span className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>Criado {formatRelativeTime(p.createdAt)}</span>
+                      {p.files.length > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <FileText className="h-3 w-3" aria-hidden="true" />
+                          {p.files.length}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmId(p.id)}
+                    aria-label={`Excluir projeto “${p.name}”`}
+                    title="Excluir projeto"
+                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground opacity-0 outline-none transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
               ))}
             </div>
           )}
+
+          <Dialog
+            open={confirmId !== null}
+            onOpenChange={(open) => {
+              if (!open) setConfirmId(null)
+            }}
+          >
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Excluir projeto?</DialogTitle>
+                <DialogDescription>
+                  “{confirmProject?.name}” será removido, junto com os arquivos do seu
+                  conhecimento (RAG). As conversas do projeto são mantidas, apenas sem o
+                  projeto.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setConfirmId(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="dangerSolid"
+                  onClick={() => {
+                    if (confirmId) deleteProject(confirmId)
+                    setConfirmId(null)
+                  }}
+                >
+                  Excluir
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </ScrollArea>
     </div>
