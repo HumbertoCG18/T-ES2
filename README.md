@@ -7,13 +7,14 @@ dependência de nuvem.
 
 **Autor:** Humberto Corrêa Gomes (trabalho individual)
 
-## Estado atual — Entregas 1–7 concluídas (dev/infra completo)
+## Estado atual — Entregas 1–8 concluídas ✅
 
 Os **7 microsserviços** da spec existem e a plataforma sobe inteira com **`docker compose up`**
-(containers + infra + Ollama + Jaeger), com tracing distribuído (OTel→Jaeger), CI (GitHub Actions)
-e manifests Kubernetes (`k8s/`). Da **Entrega 8**, o relatório técnico (com diagrama, benchmarks
-reais e riscos), a apresentação e o roteiro do vídeo estão prontos — **falta só gravar/publicar o
-vídeo**.
+(containers + infra + Ollama + Jaeger), com tracing distribuído ponta a ponta (OTel→Jaeger,
+**6 serviços** no mesmo trace, incl. Java↔Python e a fila AMQP), CI (GitHub Actions) e manifests
+Kubernetes (`k8s/`). A **Entrega 8** está completa: relatório técnico (com diagrama, benchmarks
+em CPU **e GPU** e riscos), apresentação e **vídeo de demonstração publicado** —
+https://youtu.be/eM8ovJ0arrM
 
 | Serviço | Papel | Stack | Porta |
 |---------|-------|-------|-------|
@@ -107,14 +108,16 @@ cd agent-service
    `docker-compose.yaml` na raiz orquestrando os 7 serviços + infra + Ollama. `docker compose up`
    sobe a plataforma toda (config por env, descoberta por nome/`lb://`); verificado ao vivo
    (7 imagens, 12 containers, Eureka in-container UP).
-6. ✅ **Observabilidade** — rastreamento distribuído OpenTelemetry → Jaeger (5 serviços, incl.
-   Java↔Python via `retrieval-service`); Jaeger no compose (UI :16686). + pipeline de CI
-   (GitHub Actions: Java/Python/frontend). Verificado ao vivo.
+6. ✅ **Observabilidade** — rastreamento distribuído OpenTelemetry → Jaeger (hoje **6 serviços**
+   no mesmo trace, incl. Java↔Python, o llm-gateway/LiteLLM e a ingestão via fila AMQP);
+   Jaeger no compose (UI :16686). + pipeline de CI (GitHub Actions: Java/Python/frontend).
+   Verificado ao vivo.
 7. ✅ **Produção em nuvem** — manifests Kubernetes em `k8s/` (7 serviços + infra + Jaeger + Ingress;
    ConfigMap/Secret/PVC; `kubectl kustomize` válido, 35 recursos) + análise de evolução para nuvem.
    Cluster rodando é opcional.
-8. 🔨 Entrega final — **relatório técnico, diagrama visual, benchmarks reais + interpretação,
-   riscos e apresentação prontos**; falta só gravar/publicar o vídeo (roteiro completo pronto).
+8. ✅ **Entrega final** — relatório técnico (diagrama, benchmarks em CPU e **GPU** com
+   interpretação — seções 5.2 e 5.4 —, riscos, evolução p/ nuvem), apresentação (Marp) e
+   **vídeo de demonstração publicado**: https://youtu.be/eM8ovJ0arrM
 
 > **`tool-registry` (microsserviço nº 5 da spec)** ✅ — serviço remoto (8084) com **7 ferramentas**
 > (calculator, datetime, db_query, knowledge_search, unit_convert, text_stats, random); o
@@ -151,12 +154,14 @@ npm run dev     # http://localhost:5173 (proxy /api -> gateway 8080)
 - ✅ **Relatório técnico** — metodologia, decisões dos ADRs 0001–0016 + trade-offs,
   dificuldades, conclusões.
 - ✅ **Avaliação de desempenho** — benchmarks medidos ao vivo na stack em containers (relatório,
-  seção 5), com 8 pontos de interpretação crítica (gargalo = LLM; breaker derruba cauda p/ 20 ms).
+  seção 5), com 8 pontos de interpretação crítica e **remedição pós-otimização com GPU**
+  (seção 5.4: chat 3B 0,55 s; com ferramenta 1,4 s; breaker derruba cauda p/ ~40 ms).
 - ✅ **Discussão de riscos** — relatório, seção 6 (segurança, performance, escalabilidade,
   disponibilidade — com exemplos concretos do sistema).
 - ✅ **Análise de evolução para nuvem** + descrição das alterações para Kubernetes
   (`k8s/` + relatório, seção 7).
-- 🔨 **Circuit breaker demonstrado** — medido ao vivo (fallback ~20 ms, zero 5xx, recuperação
-  automática — relatório, seção 5.2-E); falta só gravar a cena no vídeo (roteiro, cena 8).
-- 🔨 **Vídeo de demonstração** (YouTube não-listado) — roteiro completo com cronograma, falas e
-  comandos; falta gravar/publicar. **Apresentação final** ✅ — pronta (Marp).
+- ✅ **Circuit breaker demonstrado** — medido ao vivo (abre na 3ª falha, fallback ~40 ms com o
+  breaker aberto, zero 5xx, recuperação automática — relatório, seções 5.2-E e 5.4) e gravado
+  no vídeo (cena 8).
+- ✅ **Vídeo de demonstração** (YouTube não-listado) — publicado: https://youtu.be/eM8ovJ0arrM
+  **Apresentação final** ✅ — pronta (Marp, `docs/apresentacao.pdf`).
